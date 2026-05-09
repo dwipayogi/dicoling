@@ -1,6 +1,7 @@
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { size, spacing } from "@/constants/Sizes";
 import { Ionicons } from "@expo/vector-icons";
+import { memo } from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -17,7 +18,7 @@ interface CategoryCardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export default function CategoryCard({
+function CategoryCard({
   title,
   description,
   icon = "chatbubble-ellipses-outline",
@@ -42,11 +43,13 @@ export default function CategoryCard({
   );
 }
 
+export default memo(CategoryCard);
+
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.secondary,
     borderRadius: 16,
-    padding: 16,
+    padding: spacing.lg,
     flex: 1,
     minHeight: 120,
   },

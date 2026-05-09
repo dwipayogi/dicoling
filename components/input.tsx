@@ -1,5 +1,6 @@
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { size, spacing } from "@/constants/Sizes";
+import { memo } from "react";
 import { StyleSheet, TextInput } from "react-native";
 
 interface InputProps {
@@ -9,7 +10,7 @@ interface InputProps {
   secureTextEntry?: boolean;
 }
 
-export default function Input({
+function Input({
   placeholder,
   value,
   onChangeText,
@@ -26,13 +27,15 @@ export default function Input({
   );
 }
 
+export default memo(Input);
+
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.gray,
     borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     width: "100%",
     fontSize: size.small,
     color: colors.black,

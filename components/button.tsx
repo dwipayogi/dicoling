@@ -1,5 +1,6 @@
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { size, spacing } from "@/constants/Sizes";
+import { memo } from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -17,7 +18,7 @@ interface ButtonProps {
   textStyle?: StyleProp<TextStyle>;
 }
 
-export default function Button({
+function Button({
   title,
   onPress,
   variant = "primary",
@@ -42,11 +43,13 @@ export default function Button({
   );
 }
 
+export default memo(Button);
+
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xxl,
     borderRadius: 12,
     width: "100%",
   },

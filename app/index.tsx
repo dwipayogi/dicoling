@@ -1,7 +1,8 @@
 import Button from "@/components/button";
 import LanguageToggle from "@/components/language-toggle";
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { images } from "@/constants/Images";
+import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +21,7 @@ export default function Index() {
         <View style={styles.logoRow}>
           <View style={styles.logoBadge}>
             <Image
-              source={require("../assets/images/UNY.png")}
+              source={images.unyLogo}
               style={styles.unyLogo}
               resizeMode="contain"
             />
@@ -36,7 +37,7 @@ export default function Index() {
 
       <View style={styles.imageSection}>
         <Image
-          source={require("../assets/images/rektorat.jpg")}
+          source={images.rektorat}
           style={styles.rektoratImage}
           resizeMode="cover"
         />
@@ -46,9 +47,7 @@ export default function Index() {
 
       <View style={styles.bottomSection}>
         <View>
-          <Text style={styles.descriptionText}>
-            {texts.description}
-          </Text>
+          <Text style={styles.descriptionText}>{texts.description}</Text>
         </View>
 
         <View>
@@ -59,9 +58,7 @@ export default function Index() {
             onPress={() => router.replace("/auth/masuk")}
           />
 
-          <Text style={styles.footerText}>
-            {texts.footer}
-          </Text>
+          <Text style={styles.footerText}>{texts.footer}</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -80,7 +77,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: spacing.md,
   },
   logoBadge: {
     width: 54,
@@ -107,7 +104,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   languageToggle: {
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   imageSection: {
     flex: 1,
@@ -139,8 +136,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 200,
   },
   bottomSection: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.md,
     paddingBottom: 22,
   },
   descriptionText: {

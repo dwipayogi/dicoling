@@ -1,7 +1,14 @@
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { size, spacing } from "@/constants/Sizes";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleProp, StyleSheet, TextInput, View, ViewStyle } from "react-native";
+import { memo } from "react";
+import {
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  View,
+  ViewStyle,
+} from "react-native";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -10,8 +17,8 @@ interface SearchBarProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export default function SearchBar({
-  placeholder = "Cari istilah...",
+function SearchBar({
+  placeholder,
   value,
   onChangeText,
   style,
@@ -35,14 +42,16 @@ export default function SearchBar({
   );
 }
 
+export default memo(SearchBar);
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.secondary,
     borderRadius: 28,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     elevation: 2,
   },
   icon: {

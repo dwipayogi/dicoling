@@ -3,13 +3,17 @@ import Input from "@/components/input";
 import Label from "@/components/label";
 import LanguageToggle from "@/components/language-toggle";
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { images } from "@/constants/Images";
+import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 export default function Daftar() {
   const insets = useSafeAreaInsets();
@@ -21,12 +25,12 @@ export default function Daftar() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ position: "absolute", top: insets.top + 16, right: 16 }}>
+      <View style={[styles.languageToggle, { top: insets.top + spacing.lg }]}>
         <LanguageToggle variant="dark" />
       </View>
       <View style={styles.header}>
         <Image
-          source={require("../../assets/images/icon.png")}
+          source={images.appIcon}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -34,11 +38,15 @@ export default function Daftar() {
         <Text style={styles.appDescription}>Dictionnaire de Linguistique</Text>
       </View>
 
-      <View style={{ width: "100%", marginBottom: 12 }}>
+      <View style={styles.field}>
         <Label text={texts.emailLabel} />
-        <Input placeholder={texts.emailPlaceholder} value={email} onChangeText={setEmail} />
+        <Input
+          placeholder={texts.emailPlaceholder}
+          value={email}
+          onChangeText={setEmail}
+        />
       </View>
-      <View style={{ width: "100%", marginBottom: 12 }}>
+      <View style={styles.field}>
         <Label text={texts.passwordLabel} />
         <Input
           placeholder={texts.passwordPlaceholder}
@@ -47,7 +55,7 @@ export default function Daftar() {
           secureTextEntry
         />
       </View>
-      <View style={{ width: "100%", marginBottom: 12 }}>
+      <View style={styles.field}>
         <Label text={texts.confirmPasswordLabel} />
         <Input
           placeholder={texts.confirmPasswordPlaceholder}
@@ -56,11 +64,11 @@ export default function Daftar() {
           secureTextEntry
         />
       </View>
-      <Button title={texts.registerButton} onPress={() => { }} />
-      <View style={{ flexDirection: "row", marginTop: 16 }}>
-        <Text style={{ color: colors.gray }}>{texts.hasAccount}</Text>
+      <Button title={texts.registerButton} onPress={() => {}} />
+      <View style={styles.linkRow}>
+        <Text style={styles.linkTextMuted}>{texts.hasAccount}</Text>
         <Link replace href="/auth/masuk">
-          <Text style={{ color: colors.primary, fontWeight: "bold" }}>{texts.loginLink}</Text>
+          <Text style={styles.linkTextPrimary}>{texts.loginLink}</Text>
         </Link>
       </View>
     </SafeAreaView>
@@ -70,14 +78,18 @@ export default function Daftar() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: colors.white,
   },
+  languageToggle: {
+    position: "absolute",
+    right: spacing.lg,
+  },
   header: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
   logo: {
     width: 80,
@@ -92,5 +104,19 @@ const styles = StyleSheet.create({
     fontSize: size.medium,
     color: colors.gray,
   },
+  field: {
+    width: "100%",
+    marginBottom: spacing.md,
+  },
+  linkRow: {
+    flexDirection: "row",
+    marginTop: spacing.lg,
+  },
+  linkTextMuted: {
+    color: colors.gray,
+  },
+  linkTextPrimary: {
+    color: colors.primary,
+    fontWeight: "bold",
+  },
 });
-

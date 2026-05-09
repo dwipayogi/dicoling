@@ -1,12 +1,13 @@
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { size, spacing } from "@/constants/Sizes";
+import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 interface LabelProps {
   text: string;
 }
 
-export default function Label({ text }: LabelProps) {
+function Label({ text }: LabelProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>{text}</Text>
@@ -14,9 +15,11 @@ export default function Label({ text }: LabelProps) {
   );
 }
 
+export default memo(Label);
+
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     alignSelf: "flex-start",
   },
   text: {

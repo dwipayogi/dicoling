@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -20,8 +21,8 @@ const STORAGE_KEY = "@dicoling_language";
 
 const LanguageContext = createContext<LanguageContextType>({
   language: "ID",
-  setLanguage: () => { },
-  toggleLanguage: () => { },
+  setLanguage: () => {},
+  toggleLanguage: () => {},
   isLoading: true,
 });
 
@@ -56,13 +57,22 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleLanguage = useCallback(() => {
-    setLanguage(language === "ID" ? "FR" : "ID");
-  }, [language, setLanguage]);
+    setLanguageState((current) => {
+      const next = current === "ID" ? "FR" : "ID";
+      AsyncStorage.setItem(STORAGE_KEY, next).catch((error) => {
+        console.warn("Failed to save language to storage:", error);
+      });
+      return next;
+    });
+  }, []);
+
+  const value = useMemo(
+    () => ({ language, setLanguage, toggleLanguage, isLoading }),
+    [language, setLanguage, toggleLanguage, isLoading],
+  );
 
   return (
-    <LanguageContext.Provider
-      value={{ language, setLanguage, toggleLanguage, isLoading }}
-    >
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

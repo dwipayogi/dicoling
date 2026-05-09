@@ -3,13 +3,17 @@ import Input from "@/components/input";
 import Label from "@/components/label";
 import LanguageToggle from "@/components/language-toggle";
 import { colors } from "@/constants/Colors";
-import { size } from "@/constants/Sizes";
+import { images } from "@/constants/Images";
+import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 export default function Masuk() {
   const insets = useSafeAreaInsets();
@@ -25,12 +29,12 @@ export default function Masuk() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ position: "absolute", top: insets.top + 16, right: 16 }}>
+      <View style={[styles.languageToggle, { top: insets.top + spacing.lg }]}>
         <LanguageToggle variant="dark" />
       </View>
       <View style={styles.header}>
         <Image
-          source={require("../../assets/images/icon.png")}
+          source={images.appIcon}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -38,11 +42,15 @@ export default function Masuk() {
         <Text style={styles.appDescription}>Dictionnaire de Linguistique</Text>
       </View>
 
-      <View style={{ width: "100%", marginBottom: 12 }}>
+      <View style={styles.field}>
         <Label text={texts.emailLabel} />
-        <Input placeholder={texts.emailPlaceholder} value={email} onChangeText={setEmail} />
+        <Input
+          placeholder={texts.emailPlaceholder}
+          value={email}
+          onChangeText={setEmail}
+        />
       </View>
-      <View style={{ width: "100%", marginBottom: 12 }}>
+      <View style={styles.field}>
         <Label text={texts.passwordLabel} />
         <Input
           placeholder={texts.passwordPlaceholder}
@@ -52,10 +60,10 @@ export default function Masuk() {
         />
       </View>
       <Button title={texts.loginButton} onPress={handleLogin} />
-      <View style={{ flexDirection: "row", marginTop: 16 }}>
-        <Text style={{ color: colors.gray }}>{texts.noAccount}</Text>
+      <View style={styles.linkRow}>
+        <Text style={styles.linkTextMuted}>{texts.noAccount}</Text>
         <Link replace href="/auth/daftar">
-          <Text style={{ color: colors.primary, fontWeight: "bold" }}>{texts.registerLink}</Text>
+          <Text style={styles.linkTextPrimary}>{texts.registerLink}</Text>
         </Link>
       </View>
     </SafeAreaView>
@@ -65,14 +73,18 @@ export default function Masuk() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: colors.white,
   },
+  languageToggle: {
+    position: "absolute",
+    right: spacing.lg,
+  },
   header: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
   logo: {
     width: 80,
@@ -87,5 +99,19 @@ const styles = StyleSheet.create({
     fontSize: size.medium,
     color: colors.gray,
   },
+  field: {
+    width: "100%",
+    marginBottom: spacing.md,
+  },
+  linkRow: {
+    flexDirection: "row",
+    marginTop: spacing.lg,
+  },
+  linkTextMuted: {
+    color: colors.gray,
+  },
+  linkTextPrimary: {
+    color: colors.primary,
+    fontWeight: "bold",
+  },
 });
-

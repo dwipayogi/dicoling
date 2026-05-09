@@ -1,7 +1,7 @@
 import { colors } from "@/constants/Colors";
 import { size } from "@/constants/Sizes";
 import { Language, useLanguage } from "@/contexts/LanguageContext";
-import React, { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Animated,
   StyleProp,
@@ -21,7 +21,9 @@ const TOGGLE_WIDTH = 64;
 const TOGGLE_HEIGHT = 32;
 const BORDER_WIDTH = 1;
 const THUMB_PADDING = 1;
-const THUMB_SIZE = TOGGLE_HEIGHT - (BORDER_WIDTH * 2) - (THUMB_PADDING * 2);
+const THUMB_SIZE = TOGGLE_HEIGHT - BORDER_WIDTH * 2 - THUMB_PADDING * 2;
+const MAX_TRANSLATE =
+  TOGGLE_WIDTH - BORDER_WIDTH * 2 - THUMB_PADDING * 2 - THUMB_SIZE;
 
 export default function LanguageToggle({
   variant = "white",
@@ -29,7 +31,7 @@ export default function LanguageToggle({
 }: LanguageToggleProps) {
   const { language, setLanguage } = useLanguage();
   const slideAnim = useRef(
-    new Animated.Value(language === "ID" ? 0 : 1)
+    new Animated.Value(language === "ID" ? 0 : 1),
   ).current;
 
   useEffect(() => {
@@ -41,17 +43,21 @@ export default function LanguageToggle({
     }).start();
   }, [language, slideAnim]);
 
-  const maxTranslate =
-    TOGGLE_WIDTH - BORDER_WIDTH * 2 - THUMB_PADDING * 2 - THUMB_SIZE;
+  const translateX = useMemo(
+    () =>
+      slideAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, MAX_TRANSLATE],
+      }),
+    [slideAnim],
+  );
 
-  const translateX = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, maxTranslate],
-  });
-
-  const handlePress = (lang: Language) => {
-    setLanguage(lang);
-  };
+  const handlePress = useCallback(
+    (lang: Language) => {
+      setLanguage(lang);
+    },
+    [setLanguage],
+  );
 
   const isWhite = variant === "white";
 
@@ -86,8 +92,8 @@ export default function LanguageToggle({
                 ? styles.labelActiveWhite
                 : styles.labelActiveDark
               : isWhite
-              ? styles.labelInactiveWhite
-              : styles.labelInactiveDark,
+                ? styles.labelInactiveWhite
+                : styles.labelInactiveDark,
           ]}
         >
           ID
@@ -108,8 +114,8 @@ export default function LanguageToggle({
                 ? styles.labelActiveWhite
                 : styles.labelActiveDark
               : isWhite
-              ? styles.labelInactiveWhite
-              : styles.labelInactiveDark,
+                ? styles.labelInactiveWhite
+                : styles.labelInactiveDark,
           ]}
         >
           FR
