@@ -20,8 +20,8 @@ const STORAGE_KEY = "@dicoling_language";
 
 const LanguageContext = createContext<LanguageContextType>({
   language: "ID",
-  setLanguage: () => {},
-  toggleLanguage: () => {},
+  setLanguage: () => { },
+  toggleLanguage: () => { },
   isLoading: true,
 });
 
