@@ -12,13 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CategoryScreen() {
@@ -98,12 +92,10 @@ export default function CategoryScreen() {
     : "Belum ada data.";
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Text style={styles.title}>{resolvedCategory.title}</Text>
-        <LanguageToggle variant="white" />
+        <LanguageToggle variant="dark" />
       </View>
 
       <View style={styles.content}>
@@ -135,7 +127,7 @@ export default function CategoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.white,
   },
   header: {
     paddingTop: spacing.lg,
@@ -148,7 +140,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: size.title,
     fontWeight: "700",
-    color: colors.white,
+    color: colors.primary,
   },
   content: {
     flex: 1,
@@ -156,7 +148,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
   },
   searchBar: {
     marginBottom: spacing.lg,
