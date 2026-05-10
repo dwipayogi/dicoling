@@ -1,14 +1,12 @@
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { Stack } from 'expo-router';
-import 'react-native-reanimated';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { Stack } from "expo-router";
+import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-export {
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  initialRouteName: 'index',
+  initialRouteName: "index",
 };
 
 export default function RootLayout() {
@@ -20,6 +18,14 @@ export default function RootLayout() {
           <Stack.Screen name="auth/masuk" options={{ headerShown: false }} />
           <Stack.Screen name="auth/daftar" options={{ headerShown: false }} />
           <Stack.Screen name="home/index" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="home/analisis-wacana/index"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="home/analisis-wacana/[term]"
+            options={{ headerShown: false }}
+          />
         </Stack>
       </LanguageProvider>
     </SafeAreaProvider>

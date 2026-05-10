@@ -5,15 +5,26 @@ import { colors } from "@/constants/Colors";
 import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { language } = useLanguage();
   const texts = t(language).home;
   const [searchQuery, setSearchQuery] = useState("");
   const categories = texts.categories;
+
+  const handleCategoryPress = useCallback(
+    (categoryId: string) => {
+      if (categoryId === "6") {
+        router.push("/home/analisis-wacana");
+      }
+    },
+    [router],
+  );
 
   const renderCategory = useCallback(
     ({
@@ -22,10 +33,14 @@ export default function HomeScreen() {
       item: { id: string; title: string; description: string };
     }) => (
       <View style={styles.gridItem}>
-        <CategoryCard title={item.title} description={item.description} />
+        <CategoryCard
+          title={item.title}
+          description={item.description}
+          onPress={() => handleCategoryPress(item.id)}
+        />
       </View>
     ),
-    [],
+    [handleCategoryPress],
   );
 
   const keyExtractor = useCallback((item: { id: string }) => item.id, []);

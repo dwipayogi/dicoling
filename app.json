@@ -34,9 +34,12 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Inter-font.ttf"]
+          "fonts": [
+            "./assets/fonts/Inter-font.ttf"
+          ]
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
