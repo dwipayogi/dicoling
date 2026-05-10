@@ -19,11 +19,11 @@ export default function RootLayout() {
           <Stack.Screen name="auth/daftar" options={{ headerShown: false }} />
           <Stack.Screen name="home/index" options={{ headerShown: false }} />
           <Stack.Screen
-            name="home/analisis-wacana/index"
+            name="home/[category]/index"
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="home/analisis-wacana/[term]"
+            name="home/[category]/[term]"
             options={{ headerShown: false }}
           />
         </Stack>

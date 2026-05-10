@@ -1,14 +1,18 @@
 import LanguageToggle from "@/components/language-toggle";
 import SearchBar from "@/components/search-bar";
 import { colors } from "@/constants/Colors";
-import { getCategoryItems, type DictionaryItem } from "@/constants/Data";
+import {
+  getCategorySlug,
+  resolveCategoryFromSlug,
+  type DictionaryItem,
+} from "@/constants/Data";
 import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useRouter } from "expo-router";
+import { FlashList } from "@shopify/flash-list";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
-  FlatList,
   StatusBar,
   StyleSheet,
   Text,
@@ -17,47 +21,55 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const CATEGORY_ID = "6";
-const CATEGORY_KEY = "Analisis Wacana";
-
-export default function AnalisisWacanaScreen() {
+export default function CategoryScreen() {
   const router = useRouter();
   const { language } = useLanguage();
   const texts = t(language).home;
+  const { category } = useLocalSearchParams<{
+    category?: string | string[];
+  }>();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categoryTitle = useMemo(() => {
-    const title = texts.categories.find(
-      (category) => category.id === CATEGORY_ID,
-    )?.title;
-    return title ?? CATEGORY_KEY;
-  }, [texts]);
+  const categoryValue = useMemo(() => {
+    if (!category) {
+      return "";
+    }
+    const raw = Array.isArray(category) ? category[0] : category;
+    return decodeURIComponent(raw);
+  }, [category]);
 
-  const categoryItems = useMemo(
-    () => getCategoryItems(CATEGORY_KEY, language),
-    [language],
+  const resolvedCategory = useMemo(
+    () => resolveCategoryFromSlug(categoryValue, language),
+    [categoryValue, language],
   );
+
+  const categorySlug = useMemo(() => {
+    if (categoryValue) {
+      return categoryValue;
+    }
+    return getCategorySlug(resolvedCategory.title);
+  }, [categoryValue, resolvedCategory.title]);
 
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
-      return categoryItems;
+      return resolvedCategory.items;
     }
-    return categoryItems.filter(
+    return resolvedCategory.items.filter(
       (item) =>
         item.name_norm.includes(query) ||
         item.name.toLowerCase().includes(query),
     );
-  }, [categoryItems, searchQuery]);
+  }, [resolvedCategory.items, searchQuery]);
 
   const handlePress = useCallback(
     (item: DictionaryItem) => {
       router.push({
-        pathname: "/home/analisis-wacana/[term]",
-        params: { term: item.name_norm },
+        pathname: "/home/[category]/[term]",
+        params: { category: categorySlug, term: item.name_norm },
       });
     },
-    [router],
+    [categorySlug, router],
   );
 
   const renderItem = useCallback(
@@ -90,7 +102,7 @@ export default function AnalisisWacanaScreen() {
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
       <View style={styles.header}>
-        <Text style={styles.title}>{categoryTitle}</Text>
+        <Text style={styles.title}>{resolvedCategory.title}</Text>
         <LanguageToggle variant="white" />
       </View>
 
@@ -102,7 +114,7 @@ export default function AnalisisWacanaScreen() {
           style={styles.searchBar}
         />
 
-        <FlatList
+        <FlashList
           data={filteredItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.name_norm}

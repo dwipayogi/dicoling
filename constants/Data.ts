@@ -1,3 +1,4 @@
+import translations from "@/constants/Translations";
 import type { Language } from "@/contexts/LanguageContext";
 
 export type DictionaryItem = {
@@ -117,6 +118,102 @@ export const Data: DictionaryCategory[] = [
       },
     ],
   },
+  {
+    category: "Fonologi",
+    lang: "ID",
+    data: [
+      {
+        name: "Fonologi",
+        name_norm: "fonologi",
+        desc: "Fonologi adalah cabang linguistik yang mempelajari sistem bunyi dalam suatu bahasa, termasuk bagaimana bunyi diorganisasi dan digunakan untuk membedakan makna (Odden, 2005).",
+        example:
+          "Dalam bahasa Indonesia, fonem /p/ dan /b/ membedakan kata “padi” dan “badi”, yang memiliki makna berbeda. Analisis fonologi membantu memahami bagaimana perbedaan bunyi ini berfungsi dalam sistem bahasa.",
+      },
+      {
+        name: "Fonem",
+        name_norm: "fonem",
+        desc: "Fonem adalah unit bunyi terkecil dalam suatu bahasa yang dapat membedakan makna. Fonem tidak memiliki makna sendiri, tetapi perbedaan fonem dapat mengubah makna kata (Trask, 1996).",
+        example:
+          "Dalam bahasa Indonesia, fonem /k/ dan /g/ membedakan kata “kaki” dan “gaki”, yang memiliki makna berbeda. Analisis fonem membantu memahami bagaimana perbedaan bunyi ini berfungsi dalam sistem bahasa.",
+      },
+      {
+        name: "Alofon",
+        name_norm: "alofon",
+        desc: "Alofon adalah variasi fonem yang tidak mengubah makna kata. Alofon dapat dipengaruhi oleh lingkungan fonetik atau faktor sosial (Ladefoged, 2001).",
+        example:
+          "Dalam bahasa Indonesia, fonem /t/ memiliki alofon [t] dan [ʔ] (glottal stop) dalam posisi akhir kata, seperti dalam kata “kota” yang dapat diucapkan sebagai [kota] atau [kotaʔ]. Analisis alofon membantu memahami variasi bunyi yang terjadi dalam bahasa.",
+      },
+      {
+        name: "Suku Kata",
+        name_norm: "suku kata",
+        desc: "Suku kata adalah unit fonologis yang terdiri dari satu atau lebih fonem yang diucapkan sebagai satu kesatuan. Suku kata biasanya terdiri dari inti vokal dan dapat memiliki konsonan sebelum atau sesudahnya (Crystal, 2008).",
+        example:
+          "Dalam bahasa Indonesia, kata “buku” terdiri dari dua suku kata: “bu” dan “ku”. Analisis suku kata membantu memahami struktur fonologis kata dalam bahasa.",
+      },
+      {
+        name: "Intonasi",
+        name_norm: "intonasi",
+        desc: "Intonasi adalah pola naik turun nada dalam ucapan yang dapat memberikan informasi tambahan tentang makna, emosi, atau fungsi komunikatif (Ladd, 2008).",
+        example:
+          "Dalam bahasa Indonesia, kalimat “Kamu pergi?” dengan intonasi naik di akhir menunjukkan pertanyaan, sedangkan dengan intonasi datar menunjukkan pernyataan. Analisis intonasi membantu memahami bagaimana variasi nada dapat mempengaruhi makna dalam komunikasi.",
+      },
+      {
+        name: "Stres",
+        name_norm: "stres",
+        desc: "Stres adalah penekanan yang diberikan pada suku kata tertentu dalam sebuah kata atau kalimat, yang dapat mempengaruhi makna atau fungsi komunikatif (Crystal, 2008).",
+        example:
+          "Dalam bahasa Indonesia, kata “bisa” dengan stres pada suku kata pertama berarti “dapat”, sedangkan dengan stres pada suku kata kedua berarti “racun”. Analisis stres membantu memahami bagaimana penekanan dapat mempengaruhi makna dalam bahasa.",
+      },
+    ],
+  },
+  {
+    category: "Fonologi",
+    lang: "FR",
+    data: [
+      {
+        name: "Phonologie",
+        name_norm: "phonologie",
+        desc: "La phonologie est une branche de la linguistique qui étudie le système de sons d'une langue, y compris comment les sons sont organisés et utilisés pour différencier les significations (Odden, 2005).",
+        example:
+          "En français, les phonèmes /p/ et /b/ différencient les mots “papa” et “baba”, qui ont des significations différentes. L'analyse phonologique aide à comprendre comment ces différences de sons fonctionnent dans le système de la langue.",
+      },
+      {
+        name: "Phonème",
+        name_norm: "phonème",
+        desc: "Un phonème est la plus petite unité sonore d'une langue qui peut différencier les significations. Les phonèmes n'ont pas de signification propre, mais la différence entre les phonèmes peut changer la signification d'un mot (Trask, 1996).",
+        example:
+          "En français, les phonèmes /k/ et /g/ différencient les mots “carte” et “garte”, qui ont des significations différentes. L'analyse phonémique aide à comprendre comment ces différences de sons fonctionnent dans le système de la langue.",
+      },
+      {
+        name: "Allophone",
+        name_norm: "allophone",
+        desc: "Un allophone est une variation d'un phonème qui ne change pas la signification d'un mot. Les allophones peuvent être influencés par l'environnement phonétique ou des facteurs sociaux (Ladefoged, 2001).",
+        example:
+          "En français, le phonème /t/ a des allophones [t] et [ʔ] (coup de glotte) en position finale de mot, comme dans le mot “chat” qui peut être prononcé [ʃa] ou [ʃaʔ]. L'analyse des allophones aide à comprendre les variations de sons qui se produisent dans la langue.",
+      },
+      {
+        name: "Syllabe",
+        name_norm: "syllabe",
+        desc: "Une syllabe est une unité phonologique composée d'un ou plusieurs phonèmes prononcés comme une seule entité. Une syllabe comprend généralement un noyau vocalique et peut avoir des consonnes avant ou après (Crystal, 2008).",
+        example:
+          "En français, le mot “bouteille” se compose de deux syllabes : “bou” et “teille”. L'analyse des syllabes aide à comprendre la structure phonologique des mots dans la langue.",
+      },
+      {
+        name: "Intonation",
+        name_norm: "intonation",
+        desc: "L'intonation est le schéma de montée et de descente de la voix dans la parole qui peut fournir des informations supplémentaires sur le sens, les émotions ou la fonction communicative (Ladd, 2008).",
+        example:
+          "En français, la phrase “Tu vas?” avec une intonation montante à la fin indique une question, tandis qu'une intonation plate indique une déclaration. L'analyse de l'intonation aide à comprendre comment les variations de ton peuvent affecter le sens dans la communication.",
+      },
+      {
+        name: "Accentuation",
+        name_norm: "accentuation",
+        desc: "L'accentuation est l'emphase donnée à une syllabe particulière dans un mot ou une phrase, qui peut affecter le sens ou la fonction communicative (Crystal, 2008).",
+        example:
+          "En français, le mot “pêche” avec l'accent sur la première syllabe signifie “fruit”, tandis qu'avec l'accent sur la deuxième syllabe signifie “action de pêcher”. L'analyse de l'accentuation aide à comprendre comment l'emphase peut affecter le sens dans la langue.",
+      },
+    ],
+  },
 ];
 
 export function getCategoryItems(categoryKey: string, language: Language) {
@@ -126,4 +223,96 @@ export function getCategoryItems(categoryKey: string, language: Language) {
         category.category === categoryKey && category.lang === language,
     )?.data ?? []
   );
+}
+
+const FALLBACK_CATEGORY_KEY = "Fonologi";
+const FALLBACK_CATEGORY_ID =
+  translations.ID.home.categories.find(
+    (category) => category.title === FALLBACK_CATEGORY_KEY,
+  )?.id ?? "1";
+
+function slugifyCategoryTitle(title: string) {
+  return title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function getCategoryKeyById(categoryId: string) {
+  return (
+    translations.ID.home.categories.find(
+      (category) => category.id === categoryId,
+    )?.title ?? FALLBACK_CATEGORY_KEY
+  );
+}
+
+function getCategoryTitleById(categoryId: string, language: Language) {
+  return (
+    translations[language].home.categories.find(
+      (category) => category.id === categoryId,
+    )?.title ?? getCategoryKeyById(categoryId)
+  );
+}
+
+function findCategoryIdBySlug(categorySlug: string) {
+  const normalizedSlug = slugifyCategoryTitle(categorySlug);
+  const languages = Object.keys(translations) as Language[];
+
+  for (const language of languages) {
+    const matched = translations[language].home.categories.find(
+      (category) => slugifyCategoryTitle(category.title) === normalizedSlug,
+    );
+
+    if (matched) {
+      return matched.id;
+    }
+  }
+
+  return undefined;
+}
+
+export function getCategorySlug(title: string) {
+  return slugifyCategoryTitle(title);
+}
+
+export type ResolvedCategory = {
+  id: string;
+  key: string;
+  title: string;
+  items: DictionaryItem[];
+  isFallback: boolean;
+};
+
+export function resolveCategoryFromSlug(
+  categorySlug: string | undefined,
+  language: Language,
+): ResolvedCategory {
+  const requestedId = categorySlug
+    ? findCategoryIdBySlug(categorySlug)
+    : undefined;
+  const resolvedId = requestedId ?? FALLBACK_CATEGORY_ID;
+  const resolvedKey = getCategoryKeyById(resolvedId);
+  const resolvedTitle = getCategoryTitleById(resolvedId, language);
+  const resolvedItems = getCategoryItems(resolvedKey, language);
+
+  if (resolvedItems.length === 0 && resolvedId !== FALLBACK_CATEGORY_ID) {
+    const fallbackTitle = getCategoryTitleById(FALLBACK_CATEGORY_ID, language);
+    return {
+      id: FALLBACK_CATEGORY_ID,
+      key: FALLBACK_CATEGORY_KEY,
+      title: fallbackTitle,
+      items: getCategoryItems(FALLBACK_CATEGORY_KEY, language),
+      isFallback: true,
+    };
+  }
+
+  return {
+    id: resolvedId,
+    key: resolvedKey,
+    title: resolvedTitle,
+    items: resolvedItems,
+    isFallback: resolvedId !== requestedId,
+  };
 }

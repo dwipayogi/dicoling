@@ -2,6 +2,7 @@ import CategoryCard from "@/components/category-card";
 import LanguageToggle from "@/components/language-toggle";
 import SearchBar from "@/components/search-bar";
 import { colors } from "@/constants/Colors";
+import { getCategorySlug } from "@/constants/Data";
 import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,10 +19,12 @@ export default function HomeScreen() {
   const categories = texts.categories;
 
   const handleCategoryPress = useCallback(
-    (categoryId: string) => {
-      if (categoryId === "6") {
-        router.push("/home/analisis-wacana");
-      }
+    (category: { id: string; title: string }) => {
+      const slug = getCategorySlug(category.title);
+      router.push({
+        pathname: "/home/[category]",
+        params: { category: slug },
+      });
     },
     [router],
   );
@@ -36,7 +39,7 @@ export default function HomeScreen() {
         <CategoryCard
           title={item.title}
           description={item.description}
-          onPress={() => handleCategoryPress(item.id)}
+          onPress={() => handleCategoryPress(item)}
         />
       </View>
     ),
