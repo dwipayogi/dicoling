@@ -43,3 +43,14 @@ CREATE TRIGGER IF NOT EXISTS fts_ad
     INSERT INTO entries_fts(entries_fts, rowid, term, definition, ex_quote)
     VALUES ('delete', old.id, old.term, old.definition, old.ex_quote);
   END;
+
+-- Auth: user accounts (offline-first)
+CREATE TABLE IF NOT EXISTS users (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  name           TEXT    NOT NULL,
+  email          TEXT    NOT NULL UNIQUE,
+  password       TEXT    NOT NULL,
+  created_at     TEXT    DEFAULT (datetime('now')),
+  last_active_at TEXT    DEFAULT (datetime('now')),
+  synced         INTEGER DEFAULT 0
+);

@@ -5,18 +5,49 @@ import { colors } from "@/constants/Colors";
 import { getCategorySlug } from "@/constants/Data";
 import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FlatList, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+
+function getTimeGreeting(texts: {
+  greetingMorning: string;
+  greetingAfternoon: string;
+  greetingEvening: string;
+  greetingNight: string;
+}): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) return texts.greetingMorning;
+  if (hour >= 11 && hour < 15) return texts.greetingAfternoon;
+  if (hour >= 15 && hour < 18) return texts.greetingEvening;
+  return texts.greetingNight;
+}
+
+const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  "1": "volume-high-outline",    // Fonologi — bunyi bahasa
+  "2": "git-branch-outline",     // Sintaksis — struktur kalimat
+  "3": "bulb-outline",           // Semantik — makna
+  "4": "chatbubbles-outline",    // Pragmatik — konteks
+  "5": "construct-outline",      // Morfologi — pembentukan kata
+  "6": "document-text-outline",  // Analisis Wacana — teks & wacana
+};
 
 export default function HomeScreen() {
   const router = useRouter();
   const { language } = useLanguage();
+  const { user } = useAuth();
   const texts = t(language).home;
   const [searchQuery, setSearchQuery] = useState("");
   const categories = texts.categories;
+
+  const greeting = useMemo(() => {
+    const timeGreeting = getTimeGreeting(texts);
+    const name = user?.name ?? "";
+    return name ? `${timeGreeting}, ${name}` : timeGreeting;
+  }, [texts, user?.name]);
 
   const handleCategoryPress = useCallback(
     (category: { id: string; title: string }) => {
@@ -29,6 +60,7 @@ export default function HomeScreen() {
     [router],
   );
 
+
   const renderCategory = useCallback(
     ({
       item,
@@ -39,6 +71,7 @@ export default function HomeScreen() {
         <CategoryCard
           title={item.title}
           description={item.description}
+          icon={CATEGORY_ICONS[item.id]}
           onPress={() => handleCategoryPress(item)}
         />
       </View>
@@ -57,7 +90,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
       <View style={styles.header}>
-        <Text style={styles.greeting}>{texts.greeting}</Text>
+        <Text style={styles.greeting}>{greeting}</Text>
         <LanguageToggle variant="white" />
       </View>
 

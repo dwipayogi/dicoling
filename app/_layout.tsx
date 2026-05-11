@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Stack } from "expo-router";
 import "react-native-reanimated";
@@ -13,21 +14,24 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <LanguageProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/masuk" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/daftar" options={{ headerShown: false }} />
-          <Stack.Screen name="home/index" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="home/[category]/index"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="home/[category]/[term]"
-            options={{ headerShown: false }}
-          />
-        </Stack>
+        <AuthProvider>
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/masuk" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/daftar" options={{ headerShown: false }} />
+            <Stack.Screen name="home/index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="home/[category]/index"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="home/[category]/[term]"
+              options={{ headerShown: false }}
+            />
+          </Stack>
+        </AuthProvider>
       </LanguageProvider>
     </SafeAreaProvider>
   );
 }
+
