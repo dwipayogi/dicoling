@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  type TextInputProps,
 } from "react-native";
 
 interface InputProps {
@@ -19,6 +20,13 @@ interface InputProps {
   error?: string;
   keyboardType?: "default" | "email-address";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  autoComplete?: TextInputProps["autoComplete"];
+  textContentType?: TextInputProps["textContentType"];
+  autoCorrect?: boolean;
+  returnKeyType?: TextInputProps["returnKeyType"];
+  inputMode?: TextInputProps["inputMode"];
+  onSubmitEditing?: TextInputProps["onSubmitEditing"];
+  blurOnSubmit?: TextInputProps["blurOnSubmit"];
 }
 
 function Input({
@@ -29,6 +37,13 @@ function Input({
   error,
   keyboardType = "default",
   autoCapitalize,
+  autoComplete,
+  textContentType,
+  autoCorrect,
+  returnKeyType,
+  inputMode,
+  onSubmitEditing,
+  blurOnSubmit,
 }: InputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
 
@@ -48,6 +63,13 @@ function Input({
           secureTextEntry={hidden}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          autoComplete={autoComplete}
+          textContentType={textContentType}
+          autoCorrect={autoCorrect}
+          returnKeyType={returnKeyType}
+          inputMode={inputMode}
+          onSubmitEditing={onSubmitEditing}
+          blurOnSubmit={blurOnSubmit}
         />
         {secureTextEntry ? (
           <TouchableOpacity
@@ -65,7 +87,9 @@ function Input({
       </View>
       {error ? (
         <Animated.View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText} selectable>
+            {error}
+          </Text>
         </Animated.View>
       ) : null}
     </View>

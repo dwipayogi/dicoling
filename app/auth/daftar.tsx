@@ -1,30 +1,18 @@
-import Button from "@/components/button";
+import {
+  AuthField,
+  AuthFooterLink,
+  AuthScreenLayout,
+} from "@/components/auth-screen-layout";
 import Input from "@/components/input";
 import Label from "@/components/label";
-import LanguageToggle from "@/components/language-toggle";
-import { colors } from "@/constants/Colors";
-import { images } from "@/constants/Images";
-import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FieldErrors } from "@/services/auth";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
 
 export default function Daftar() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { language } = useLanguage();
   const { register } = useAuth();
@@ -74,37 +62,34 @@ export default function Daftar() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={[styles.languageToggle, { top: insets.top + spacing.lg }]}>
-        <LanguageToggle variant="dark" />
-      </View>
-      <View style={styles.header}>
-        <Image
-          source={images.appIcon}
-          style={styles.logo}
-          resizeMode="contain"
+    <AuthScreenLayout
+      actionLabel={texts.registerButton}
+      onAction={handleRegister}
+      isLoading={isLoading}
+      generalError={generalError}
+      footer={
+        <AuthFooterLink
+          mutedText={texts.hasAccount}
+          linkText={texts.loginLink}
+          href="/auth/masuk"
         />
-        <Text style={styles.appName}>Dicoling</Text>
-        <Text style={styles.appDescription}>Dictionnaire de Linguistique</Text>
-      </View>
-
-      {generalError ? (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorBannerText}>{generalError}</Text>
-        </View>
-      ) : null}
-
-      <View style={styles.field}>
+      }
+    >
+      <AuthField>
         <Label text={texts.nameLabel} />
         <Input
           placeholder={texts.namePlaceholder}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
+          autoComplete="name"
+          textContentType="name"
+          autoCorrect={false}
+          returnKeyType="next"
           error={resolveError(fieldErrors.name)}
         />
-      </View>
-      <View style={styles.field}>
+      </AuthField>
+      <AuthField>
         <Label text={texts.emailLabel} />
         <Input
           placeholder={texts.emailPlaceholder}
@@ -112,107 +97,28 @@ export default function Daftar() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoComplete="email"
+          textContentType="emailAddress"
+          autoCorrect={false}
+          inputMode="email"
+          returnKeyType="next"
           error={resolveError(fieldErrors.email)}
         />
-      </View>
-      <View style={styles.field}>
+      </AuthField>
+      <AuthField>
         <Label text={texts.passwordLabel} />
         <Input
           placeholder={texts.passwordPlaceholder}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          autoComplete="password"
+          textContentType="newPassword"
+          autoCorrect={false}
+          returnKeyType="done"
           error={resolveError(fieldErrors.password)}
         />
-      </View>
-
-      <Button
-        title={isLoading ? "" : texts.registerButton}
-        onPress={handleRegister}
-        style={isLoading ? styles.buttonLoading : undefined}
-      />
-      {isLoading ? (
-        <ActivityIndicator
-          size="small"
-          color={colors.white}
-          style={styles.spinner}
-        />
-      ) : null}
-
-      <View style={styles.linkRow}>
-        <Text style={styles.linkTextMuted}>{texts.hasAccount}</Text>
-        <Link replace href="/auth/masuk">
-          <Text style={styles.linkTextPrimary}>{texts.loginLink}</Text>
-        </Link>
-      </View>
-    </SafeAreaView>
+      </AuthField>
+    </AuthScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.white,
-  },
-  languageToggle: {
-    position: "absolute",
-    right: spacing.lg,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: spacing.xxl,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-  },
-  appName: {
-    fontSize: size.extraLarge,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-  appDescription: {
-    fontSize: size.medium,
-    color: colors.gray,
-  },
-  errorBanner: {
-    width: "100%",
-    backgroundColor: "#FEF2F2",
-    borderWidth: 1,
-    borderColor: "#FECACA",
-    borderRadius: 12,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  errorBannerText: {
-    color: colors.danger,
-    fontSize: size.small,
-    textAlign: "center",
-  },
-  field: {
-    width: "100%",
-    marginBottom: spacing.md,
-  },
-  buttonLoading: {
-    opacity: 0.7,
-  },
-  spinner: {
-    position: "absolute",
-    alignSelf: "center",
-  },
-  linkRow: {
-    flexDirection: "row",
-    marginTop: spacing.lg,
-  },
-  linkTextMuted: {
-    color: colors.gray,
-  },
-  linkTextPrimary: {
-    color: colors.primary,
-    fontWeight: "bold",
-  },
-});

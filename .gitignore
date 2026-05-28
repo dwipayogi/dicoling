@@ -40,3 +40,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# ai
+.agents
+.antigravitycli
+skills-lock.json
+expo-documentation.txt
