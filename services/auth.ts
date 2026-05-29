@@ -1,9 +1,17 @@
 import * as Network from "expo-network";
-import * as SQLite from "expo-sqlite";
+import type { UserRow } from "@/services/repository";
+import {
+  getUserByEmail,
+  getUserByEmailAndPassword,
+  getUnsyncedUsers,
+  insertUser,
+  markUserSynced,
+  updateUserAfterOnlineLogin,
+  updateUserLastActive,
+  upsertUser,
+} from "@/services/repository";
 
 const API_BASE = "https://dicoling-api.vercel.app";
-const DB_NAME = "kamus.db";
-
 // ── Types ──────────────────────────────────────────────────────────────
 
 export interface User {
@@ -71,35 +79,6 @@ async function isOnline(): Promise<boolean> {
   }
 }
 
-// ── Database helpers ───────────────────────────────────────────────────
-
-async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  const db = await SQLite.openDatabaseAsync(DB_NAME);
-  // Ensure users table exists at runtime (schema.sql is only used at seed time)
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS users (
-      id             INTEGER PRIMARY KEY AUTOINCREMENT,
-      name           TEXT    NOT NULL,
-      email          TEXT    NOT NULL UNIQUE,
-      password       TEXT    NOT NULL,
-      created_at     TEXT    DEFAULT (datetime('now')),
-      last_active_at TEXT    DEFAULT (datetime('now')),
-      synced         INTEGER DEFAULT 0
-    );
-  `);
-  return db;
-}
-
-interface UserRow {
-  id: number;
-  name: string;
-  email: string;
-  password: string;
-  created_at: string;
-  last_active_at: string;
-  synced: number;
-}
-
 function rowToUser(row: UserRow): User {
   return {
     id: row.id,
@@ -122,13 +101,9 @@ export async function register(
 
   const trimmedEmail = email.trim().toLowerCase();
   const trimmedName = name.trim();
-  const db = await getDb();
 
   // 2. Check if email already exists locally
-  const existing = await db.getFirstAsync<UserRow>(
-    "SELECT * FROM users WHERE email = ?",
-    [trimmedEmail],
-  );
+  const existing = await getUserByEmail(trimmedEmail);
   if (existing) {
     return { success: false, generalError: "emailTaken" };
   }
@@ -154,23 +129,27 @@ export async function register(
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        const apiError =
+          typeof body.error === "string"
+            ? body.error
+            : typeof body.message === "string"
+              ? body.message
+              : undefined;
         return {
           success: false,
-          generalError: body.message || "unknownError",
+          generalError: apiError || "unknownError",
         };
       }
 
       // API success → save locally as synced
-      await db.runAsync(
-        `INSERT OR REPLACE INTO users (name, email, password, synced)
-         VALUES (?, ?, ?, 1)`,
-        [trimmedName, trimmedEmail, password],
-      );
+      await upsertUser({
+        name: trimmedName,
+        email: trimmedEmail,
+        password,
+        synced: 1,
+      });
 
-      const user = await db.getFirstAsync<UserRow>(
-        "SELECT * FROM users WHERE email = ?",
-        [trimmedEmail],
-      );
+      const user = await getUserByEmail(trimmedEmail);
 
       return { success: true, user: user ? rowToUser(user) : undefined };
     } catch {
@@ -180,16 +159,14 @@ export async function register(
   }
 
   // 4. Offline → save locally as unsynced
-  await db.runAsync(
-    `INSERT INTO users (name, email, password, synced)
-     VALUES (?, ?, ?, 0)`,
-    [trimmedName, trimmedEmail, password],
-  );
+  await insertUser({
+    name: trimmedName,
+    email: trimmedEmail,
+    password,
+    synced: 0,
+  });
 
-  const user = await db.getFirstAsync<UserRow>(
-    "SELECT * FROM users WHERE email = ?",
-    [trimmedEmail],
-  );
+  const user = await getUserByEmail(trimmedEmail);
 
   return { success: true, user: user ? rowToUser(user) : undefined };
 }
@@ -205,7 +182,6 @@ export async function login(
   if (fieldErrors) return { success: false, fieldErrors };
 
   const trimmedEmail = email.trim().toLowerCase();
-  const db = await getDb();
   const online = await isOnline();
 
   if (online) {
@@ -226,9 +202,15 @@ export async function login(
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        const apiError =
+          typeof body.error === "string"
+            ? body.error
+            : typeof body.message === "string"
+              ? body.message
+              : undefined;
         return {
           success: false,
-          generalError: body.message || "unknownError",
+          generalError: apiError || "unknownError",
         };
       }
 
@@ -240,29 +222,23 @@ export async function login(
       };
 
       // Upsert user locally
-      const existing = await db.getFirstAsync<UserRow>(
-        "SELECT * FROM users WHERE email = ?",
-        [trimmedEmail],
-      );
+      const existing = await getUserByEmail(trimmedEmail);
 
       if (existing) {
-        await db.runAsync(
-          `UPDATE users SET name = ?, last_active_at = datetime('now'), synced = 1
-           WHERE email = ?`,
-          [apiUser.name, trimmedEmail],
-        );
+        await updateUserAfterOnlineLogin({
+          name: apiUser.name,
+          email: trimmedEmail,
+        });
       } else {
-        await db.runAsync(
-          `INSERT INTO users (name, email, password, synced)
-           VALUES (?, ?, ?, 1)`,
-          [apiUser.name, trimmedEmail, password],
-        );
+        await insertUser({
+          name: apiUser.name,
+          email: trimmedEmail,
+          password,
+          synced: 1,
+        });
       }
 
-      const user = await db.getFirstAsync<UserRow>(
-        "SELECT * FROM users WHERE email = ?",
-        [trimmedEmail],
-      );
+      const user = await getUserByEmail(trimmedEmail);
 
       return { success: true, user: user ? rowToUser(user) : undefined };
     } catch {
@@ -271,20 +247,14 @@ export async function login(
   }
 
   // Offline login: match against local DB
-  const localUser = await db.getFirstAsync<UserRow>(
-    "SELECT * FROM users WHERE email = ? AND password = ?",
-    [trimmedEmail, password],
-  );
+  const localUser = await getUserByEmailAndPassword(trimmedEmail, password);
 
   if (!localUser) {
     return { success: false, generalError: "invalidCredentials" };
   }
 
   // Update last_active_at locally
-  await db.runAsync(
-    `UPDATE users SET last_active_at = datetime('now') WHERE id = ?`,
-    [localUser.id],
-  );
+  await updateUserLastActive(localUser.id);
 
   return { success: true, user: rowToUser(localUser) };
 }
@@ -296,10 +266,7 @@ export async function syncPendingRegistrations(): Promise<void> {
   const online = await isOnline();
   if (!online) return;
 
-  const db = await getDb();
-  const unsyncedUsers = await db.getAllAsync<UserRow>(
-    "SELECT * FROM users WHERE synced = 0",
-  );
+  const unsyncedUsers = await getUnsyncedUsers();
 
   for (const user of unsyncedUsers) {
     try {
@@ -315,9 +282,7 @@ export async function syncPendingRegistrations(): Promise<void> {
 
       if (res.ok || res.status === 409) {
         // Mark as synced (409 means already registered on server, which is fine)
-        await db.runAsync("UPDATE users SET synced = 1 WHERE id = ?", [
-          user.id,
-        ]);
+        await markUserSynced(user.id);
       }
     } catch {
       // Network error during sync, will retry next time
@@ -332,11 +297,7 @@ export async function syncLastActive(email: string): Promise<void> {
 
   try {
     // Login call updates lastActiveAt on server automatically per API docs
-    const db = await getDb();
-    const user = await db.getFirstAsync<UserRow>(
-      "SELECT * FROM users WHERE email = ?",
-      [email],
-    );
+    const user = await getUserByEmail(email);
     if (!user) return;
 
     await fetch(`${API_BASE}/auth/login`, {
@@ -351,10 +312,6 @@ export async function syncLastActive(email: string): Promise<void> {
 
 /** Get a locally stored user by email (for session restore). */
 export async function getLocalUser(email: string): Promise<User | null> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<UserRow>(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
-  );
+  const row = await getUserByEmail(email);
   return row ? rowToUser(row) : null;
 }
