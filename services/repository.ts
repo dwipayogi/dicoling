@@ -227,27 +227,27 @@ export async function searchEntriesByCategoryAndLang(params: {
 	limit?: number;
 }): Promise<EntryListItem[]> {
 	const { category, language, query, limit = DEFAULT_SEARCH_LIMIT } = params;
-	const ftsQuery = buildFtsQuery(query);
+	const normalizedQuery = query.trim().toLowerCase();
 
-	if (!ftsQuery) {
+	if (!normalizedQuery) {
 		return getEntriesByCategoryAndLang(category, language);
 	}
 
 	const db = await getKamusDb();
 	const lang = mapLanguage(language);
+	const likePattern = `%${normalizedQuery}%`;
 	const rows = await db.getAllAsync<EntryRow>(
 		`
-			SELECT e.id, e.lang, e.category, e.seq_no, e.term, e.term_norm,
-						 e.definition, e.def_citation
-			FROM entries_fts
-			JOIN entries e ON e.id = entries_fts.rowid
-			WHERE entries_fts MATCH ?
-				AND e.category = ?
-				AND e.lang = ?
-			ORDER BY bm25(entries_fts), e.seq_no ASC
+			SELECT id, lang, category, seq_no, term, term_norm,
+						 definition, def_citation
+			FROM entries
+			WHERE term_norm LIKE ?
+				AND category = ?
+				AND lang = ?
+			ORDER BY seq_no ASC, term_norm ASC
 			LIMIT ?
 		`,
-		[ftsQuery, category, lang, limit],
+		[likePattern, category, lang, limit],
 	);
 
 	return rows.map(mapRowToListItem);
