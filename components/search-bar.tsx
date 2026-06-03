@@ -3,6 +3,7 @@ import { size, spacing } from "@/constants/Sizes";
 import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
 import {
+  Pressable,
   StyleProp,
   StyleSheet,
   TextInput,
@@ -38,6 +39,15 @@ function SearchBar({
         value={value}
         onChangeText={onChangeText}
       />
+      {value.length > 0 && (
+        <Pressable
+          onPress={() => onChangeText("")}
+          hitSlop={8}
+          style={styles.clearButton}
+        >
+          <Ionicons name="close-circle" size={18} color={colors.lightGray} />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -62,5 +72,8 @@ const styles = StyleSheet.create({
     fontSize: size.medium,
     color: colors.black,
     padding: 0,
+  },
+  clearButton: {
+    marginLeft: spacing.sm,
   },
 });

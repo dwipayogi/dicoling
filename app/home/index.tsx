@@ -8,10 +8,24 @@ import { t } from "@/constants/Translations";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Language } from "@/contexts/LanguageContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import {
+	searchEntriesByLang,
+	type SearchResultItem,
+} from "@/services/repository";
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
-import { FlatList, StatusBar, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+	ActivityIndicator,
+	FlatList,
+	StatusBar,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function getTimeGreeting(texts: {
@@ -109,13 +123,38 @@ const CATEGORIES_BY_LANGUAGE: Record<Language, CategoryItem[]> = {
 	],
 };
 
+/** Map DB category keys (Indonesian) to display titles based on language */
+const CATEGORY_DISPLAY_NAMES: Record<Language, Record<string, string>> = {
+	ID: {
+		Fonologi: "Fonologi",
+		Sintaksis: "Sintaksis",
+		Semantik: "Semantik",
+		Pragmatik: "Pragmatik",
+		Morfologi: "Morfologi",
+		"Analisis Wacana": "Analisis Wacana",
+	},
+	FR: {
+		Fonologi: "Phonologie",
+		Sintaksis: "Syntaxe",
+		Semantik: "Sémantique",
+		Pragmatik: "Pragmatique",
+		Morfologi: "Morphologie",
+		"Analisis Wacana": "Analyse du discours",
+	},
+};
+
 export default function HomeScreen() {
 	const router = useRouter();
 	const { language } = useLanguage();
 	const { user } = useAuth();
 	const texts = t(language).home;
 	const [searchQuery, setSearchQuery] = useState("");
+	const debouncedQuery = useDebouncedValue(searchQuery, 250);
+	const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
+	const [isSearching, setIsSearching] = useState(false);
 	const categories = CATEGORIES_BY_LANGUAGE[language];
+
+	const isSearchActive = searchQuery.trim().length > 0;
 
 	const greeting = useMemo(() => {
 		const timeGreeting = getTimeGreeting(texts);
@@ -123,6 +162,42 @@ export default function HomeScreen() {
 		return name ? `${timeGreeting}, ${name}` : timeGreeting;
 	}, [texts, user?.name]);
 
+	/* ----------------------------- Search effect ----------------------------- */
+	useEffect(() => {
+		let isActive = true;
+		const query = debouncedQuery.trim();
+
+		if (!query) {
+			setSearchResults([]);
+			setIsSearching(false);
+			return;
+		}
+
+		setIsSearching(true);
+
+		(async () => {
+			try {
+				const results = await searchEntriesByLang({ language, query });
+				if (isActive) {
+					setSearchResults(results);
+				}
+			} catch {
+				if (isActive) {
+					setSearchResults([]);
+				}
+			} finally {
+				if (isActive) {
+					setIsSearching(false);
+				}
+			}
+		})();
+
+		return () => {
+			isActive = false;
+		};
+	}, [debouncedQuery, language]);
+
+	/* ----------------------------- Category nav ------------------------------ */
 	const handleCategoryPress = useCallback(
 		(category: { id: string; title: string }) => {
 			const slug = getCategorySlug(category.title);
@@ -134,6 +209,19 @@ export default function HomeScreen() {
 		[router],
 	);
 
+	/* ----------------------------- Search result nav ------------------------- */
+	const handleResultPress = useCallback(
+		(item: SearchResultItem) => {
+			const slug = getCategorySlug(item.category);
+			router.push({
+				pathname: "/home/[category]/[term]",
+				params: { category: slug, term: item.name_norm },
+			});
+		},
+		[router],
+	);
+
+	/* ----------------------------- Category grid ----------------------------- */
 	const renderCategory = useCallback(
 		({ item }: { item: CategoryItem }) => (
 			<View style={styles.gridItem}>
@@ -154,6 +242,62 @@ export default function HomeScreen() {
 		[],
 	);
 
+	/* ----------------------------- Search results ---------------------------- */
+	const getCategoryDisplayName = useCallback(
+		(categoryKey: string) => {
+			return CATEGORY_DISPLAY_NAMES[language][categoryKey] ?? categoryKey;
+		},
+		[language],
+	);
+
+	const renderSearchResult = useCallback(
+		({ item }: { item: SearchResultItem }) => (
+			<TouchableOpacity
+				style={styles.resultCard}
+				onPress={() => handleResultPress(item)}
+				activeOpacity={0.7}
+			>
+				<View style={styles.resultHeader}>
+					<Text style={styles.resultTitle} numberOfLines={1}>
+						{item.name}
+					</Text>
+					<View style={styles.categoryBadge}>
+						<Text style={styles.categoryBadgeText} numberOfLines={1}>
+							{getCategoryDisplayName(item.category)}
+						</Text>
+					</View>
+				</View>
+				<Text style={styles.resultDescription} numberOfLines={2}>
+					{item.desc}
+				</Text>
+			</TouchableOpacity>
+		),
+		[handleResultPress, getCategoryDisplayName],
+	);
+
+	const renderResultSeparator = useCallback(
+		() => <View style={styles.resultSeparator} />,
+		[],
+	);
+
+	const resultKeyExtractor = useCallback(
+		(item: SearchResultItem) => `${item.id}-${item.name_norm}`,
+		[],
+	);
+
+	/* ------------------------------- Empty state ----------------------------- */
+	const notFoundText =
+		language === "FR" ? "Terme non trouvé." : "Istilah tidak ditemukan.";
+
+	const resultCountText = useMemo(() => {
+		if (isSearching || !isSearchActive) return "";
+		const count = searchResults.length;
+		if (language === "FR") {
+			return count === 1 ? "1 résultat" : `${count} résultats`;
+		}
+		return `${count} hasil`;
+	}, [isSearching, isSearchActive, searchResults.length, language]);
+
 	return (
 		<SafeAreaView style={styles.container} edges={["top"]}>
 			<StatusBar barStyle="light-content" backgroundColor={colors.primary} />
@@ -171,16 +315,50 @@ export default function HomeScreen() {
 					style={styles.searchBar}
 				/>
 
-				<FlatList
-					data={categories}
-					renderItem={renderCategory}
-					keyExtractor={keyExtractor}
-					numColumns={2}
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.listContent}
-					columnWrapperStyle={styles.row}
-					ItemSeparatorComponent={renderSeparator}
-				/>
+				{isSearchActive ? (
+					/* ----- Search results view ----- */
+					<View style={styles.searchResultsContainer}>
+						{isSearching ? (
+							<View style={styles.emptyState}>
+								<ActivityIndicator size="large" color={colors.primary} />
+							</View>
+						) : searchResults.length > 0 ? (
+							<>
+								<Text style={styles.resultCount}>{resultCountText}</Text>
+								<FlashList
+									data={searchResults}
+									renderItem={renderSearchResult}
+									keyExtractor={resultKeyExtractor}
+									showsVerticalScrollIndicator={false}
+									contentContainerStyle={styles.resultListContent}
+									ItemSeparatorComponent={renderResultSeparator}
+									keyboardShouldPersistTaps="handled"
+								/>
+							</>
+						) : (
+							<View style={styles.emptyState}>
+								<Ionicons
+									name="search-outline"
+									size={48}
+									color={colors.lightGray}
+								/>
+								<Text style={styles.emptyText}>{notFoundText}</Text>
+							</View>
+						)}
+					</View>
+				) : (
+					/* ----- Category grid view ----- */
+					<FlatList
+						data={categories}
+						renderItem={renderCategory}
+						keyExtractor={keyExtractor}
+						numColumns={2}
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={styles.listContent}
+						columnWrapperStyle={styles.row}
+						ItemSeparatorComponent={renderSeparator}
+					/>
+				)}
 			</View>
 		</SafeAreaView>
 	);
@@ -228,5 +406,68 @@ const styles = StyleSheet.create({
 	},
 	rowSeparator: {
 		height: 14,
+	},
+
+	/* Search results */
+	searchResultsContainer: {
+		flex: 1,
+	},
+	resultCount: {
+		fontSize: size.small,
+		color: colors.gray,
+		marginBottom: spacing.md,
+	},
+	resultListContent: {
+		paddingBottom: spacing.xxl,
+	},
+	resultCard: {
+		backgroundColor: colors.white,
+		borderRadius: 16,
+		padding: spacing.lg,
+		borderWidth: 1,
+		borderColor: colors.lightGray,
+	},
+	resultHeader: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		gap: spacing.sm,
+		marginBottom: spacing.sm,
+	},
+	resultTitle: {
+		fontSize: size.medium,
+		fontWeight: "700",
+		color: colors.black,
+		flexShrink: 1,
+	},
+	categoryBadge: {
+		backgroundColor: colors.secondary,
+		borderRadius: 20,
+		paddingHorizontal: spacing.md,
+		paddingVertical: spacing.xs,
+	},
+	categoryBadgeText: {
+		fontSize: size.extraSmall,
+		fontWeight: "600",
+		color: colors.primary,
+	},
+	resultDescription: {
+		fontSize: size.small,
+		color: colors.gray,
+		lineHeight: 18,
+	},
+	resultSeparator: {
+		height: spacing.md,
+	},
+
+	/* Empty state */
+	emptyState: {
+		alignItems: "center",
+		paddingVertical: spacing.xxl,
+		gap: spacing.md,
+	},
+	emptyText: {
+		fontSize: size.small,
+		color: colors.gray,
 	},
 });

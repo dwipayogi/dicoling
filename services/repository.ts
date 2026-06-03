@@ -33,6 +33,10 @@ export type EntryDetail = EntryListItem & {
 	example: string;
 };
 
+export type SearchResultItem = EntryListItem & {
+	category: string;
+};
+
 
 const LANGUAGE_MAP: Record<Language, "id" | "fr"> = {
 	ID: "id",
@@ -181,6 +185,13 @@ function mapRowToDetail(row: EntryRow): EntryDetail {
 	};
 }
 
+function mapRowToSearchResult(row: EntryRow): SearchResultItem {
+	return {
+		...mapRowToListItem(row),
+		category: row.category,
+	};
+}
+
 function buildFtsQuery(input: string) {
 	const tokens = input
 		.trim()
@@ -251,6 +262,37 @@ export async function searchEntriesByCategoryAndLang(params: {
 	);
 
 	return rows.map(mapRowToListItem);
+}
+
+export async function searchEntriesByLang(params: {
+	language: Language;
+	query: string;
+	limit?: number;
+}): Promise<SearchResultItem[]> {
+	const { language, query, limit = DEFAULT_SEARCH_LIMIT } = params;
+	const normalizedQuery = query.trim().toLowerCase();
+
+	if (!normalizedQuery) {
+		return [];
+	}
+
+	const db = await getKamusDb();
+	const lang = mapLanguage(language);
+	const likePattern = `%${normalizedQuery}%`;
+	const rows = await db.getAllAsync<EntryRow>(
+		`
+			SELECT id, lang, category, seq_no, term, term_norm,
+						 definition, def_citation
+			FROM entries
+			WHERE term_norm LIKE ?
+				AND lang = ?
+			ORDER BY term_norm ASC, seq_no ASC
+			LIMIT ?
+		`,
+		[likePattern, lang, limit],
+	);
+
+	return rows.map(mapRowToSearchResult);
 }
 
 export async function getEntryDetailByTerm(params: {
