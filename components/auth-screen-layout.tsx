@@ -1,7 +1,14 @@
 import { Image } from "expo-image";
 import { Link, type Href } from "expo-router";
 import { type ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Button from "@/components/button";
@@ -33,12 +40,16 @@ export function AuthScreenLayout({
   const paddingBottom = spacing.xxl + (isAndroid ? insets.bottom : 0);
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentInsetAdjustmentBehavior="automatic"
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={[styles.container, { paddingTop, paddingBottom }]}
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[styles.container, { paddingTop, paddingBottom }]}
+      >
       <View style={[styles.languageToggle, { top: insets.top + spacing.lg }]}>
         <LanguageToggle variant="dark" />
       </View>
@@ -74,7 +85,8 @@ export function AuthScreenLayout({
 
         {footer ? <View style={styles.footer}>{footer}</View> : null}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -110,6 +122,9 @@ export function AuthFooterLink({
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   scroll: {
     flex: 1,
     backgroundColor: colors.white,
