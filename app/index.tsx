@@ -5,7 +5,6 @@ import { images } from "@/constants/Images";
 import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,7 +26,11 @@ export default function Index() {
             />
           </View>
           <View style={styles.logoBadge}>
-            <Ionicons name="book" size={22} color={colors.primary} />
+            <Image
+              source={images.appIcon}
+              style={styles.appLogo}
+              resizeMode="contain"
+            />
           </View>
         </View>
         <Text style={styles.appTitle}>Dicoling</Text>
@@ -90,6 +93,10 @@ const styles = StyleSheet.create({
   unyLogo: {
     width: 42,
     height: 42,
+  },
+  appLogo: {
+    width: 32,
+    height: 32,
   },
   appTitle: {
     fontSize: size.extraLarge,
