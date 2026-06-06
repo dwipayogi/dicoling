@@ -6,7 +6,8 @@ import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useRouter } from "expo-router";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
@@ -22,14 +23,14 @@ export default function Index() {
             <Image
               source={images.unyLogo}
               style={styles.unyLogo}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </View>
           <View style={styles.logoBadge}>
             <Image
               source={images.appIcon}
               style={styles.appLogo}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </View>
         </View>
@@ -42,7 +43,7 @@ export default function Index() {
         <Image
           source={images.rektorat}
           style={styles.rektoratImage}
-          resizeMode="cover"
+          contentFit="cover"
         />
         <View style={styles.imageTopCurve} pointerEvents="none" />
         <View style={styles.imageBottomCurve} pointerEvents="none" />

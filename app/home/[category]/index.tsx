@@ -114,6 +114,11 @@ export default function CategoryScreen() {
 		[handlePress],
 	);
 
+	const keyExtractor = useCallback(
+		(item: EntryListItem) => `${item.id}-${item.name_norm}`,
+		[],
+	);
+
 	const renderSeparator = useCallback(
 		() => <View style={styles.cardSeparator} />,
 		[],
@@ -149,7 +154,7 @@ export default function CategoryScreen() {
 				<FlashList
 					data={items}
 					renderItem={renderItem}
-					keyExtractor={(item) => `${item.id}-${item.name_norm}`}
+					keyExtractor={keyExtractor}
 					showsVerticalScrollIndicator={false}
 					contentContainerStyle={styles.listContent}
 					ItemSeparatorComponent={renderSeparator}

@@ -4,7 +4,7 @@ import SearchBar from "@/components/search-bar";
 import { colors } from "@/constants/Colors";
 import { getCategorySlug } from "@/constants/Data";
 import { size, spacing } from "@/constants/Sizes";
-import { t } from "@/constants/Translations";
+import translations, { t } from "@/constants/Translations";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Language } from "@/contexts/LanguageContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -50,97 +50,22 @@ const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 	"6": "document-text-outline", // Analisis Wacana — teks & wacana
 };
 
-type CategoryItem = {
-	id: string;
-	title: string;
-	description: string;
-};
+type CategoryItem = { id: string; title: string; description: string };
 
-const CATEGORIES_BY_LANGUAGE: Record<Language, CategoryItem[]> = {
-	ID: [
-		{
-			id: "1",
-			title: "Fonologi",
-			description: "Kajian tentang bunyi bahasa",
-		},
-		{
-			id: "2",
-			title: "Sintaksis",
-			description: "Kajian tentang struktur kalimat",
-		},
-		{
-			id: "3",
-			title: "Semantik",
-			description: "Kajian tentang makna",
-		},
-		{
-			id: "4",
-			title: "Pragmatik",
-			description: "Kajian tentang konteks",
-		},
-		{
-			id: "5",
-			title: "Morfologi",
-			description: "Kajian tentang bentuk dan pembentukan kata.",
-		},
-		{
-			id: "6",
-			title: "Analisis Wacana",
-			description: "Kajian bahasa dalam konteks teks dan sosial",
-		},
-	],
-	FR: [
-		{
-			id: "1",
-			title: "Phonologie",
-			description: "Étude de la phonétique",
-		},
-		{
-			id: "2",
-			title: "Syntaxe",
-			description: "Étude de la structure de la phrase",
-		},
-		{
-			id: "3",
-			title: "Sémantique",
-			description: "Étude sur le sens",
-		},
-		{
-			id: "4",
-			title: "Pragmatique",
-			description: "Analyse du sens dans son contexte",
-		},
-		{
-			id: "5",
-			title: "Morphologie",
-			description: "Étude de la forme et de la formation des mots",
-		},
-		{
-			id: "6",
-			title: "Analyse du discours",
-			description: "Étude de la langue dans son contexte textuel et social",
-		},
-	],
-};
-
-/** Map DB category keys (Indonesian) to display titles based on language */
+/** Build display name map from DB category keys (Indonesian) to localized titles */
 const CATEGORY_DISPLAY_NAMES: Record<Language, Record<string, string>> = {
-	ID: {
-		Fonologi: "Fonologi",
-		Sintaksis: "Sintaksis",
-		Semantik: "Semantik",
-		Pragmatik: "Pragmatik",
-		Morfologi: "Morfologi",
-		"Analisis Wacana": "Analisis Wacana",
-	},
-	FR: {
-		Fonologi: "Phonologie",
-		Sintaksis: "Syntaxe",
-		Semantik: "Sémantique",
-		Pragmatik: "Pragmatique",
-		Morfologi: "Morphologie",
-		"Analisis Wacana": "Analyse du discours",
-	},
+	ID: Object.fromEntries(
+		translations.ID.home.categories.map((c) => {
+			const idCat = translations.ID.home.categories.find((ic) => ic.id === c.id);
+			return [idCat?.title ?? c.title, c.title];
+		}),
+	),
+	FR: Object.fromEntries(
+		translations.FR.home.categories.map((c) => {
+			const idCat = translations.ID.home.categories.find((ic) => ic.id === c.id);
+			return [idCat?.title ?? c.title, c.title];
+		}),
+	),
 };
 
 export default function HomeScreen() {
@@ -152,7 +77,7 @@ export default function HomeScreen() {
 	const debouncedQuery = useDebouncedValue(searchQuery, 250);
 	const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
-	const categories = CATEGORIES_BY_LANGUAGE[language];
+	const categories: CategoryItem[] = texts.categories as unknown as CategoryItem[];
 
 	const isSearchActive = searchQuery.trim().length > 0;
 
@@ -349,7 +274,7 @@ export default function HomeScreen() {
 				) : (
 					/* ----- Category grid view ----- */
 					<FlatList
-						data={categories}
+						data={[...categories]}
 						renderItem={renderCategory}
 						keyExtractor={keyExtractor}
 						numColumns={2}

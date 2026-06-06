@@ -63,11 +63,7 @@ const KAMUS_DB_NAME = "kamus.db";
 
 export async function getKamusDb(): Promise<SQLite.SQLiteDatabase> {
 	if (!kamusDbPromise) {
-		kamusDbPromise = (async () => {
-			const db = await SQLite.openDatabaseAsync(KAMUS_DB_NAME);
-			await db.execAsync("PRAGMA journal_mode = WAL;");
-			return db;
-		})();
+		kamusDbPromise = SQLite.openDatabaseAsync(KAMUS_DB_NAME);
 	}
 	return kamusDbPromise;
 }
@@ -79,7 +75,12 @@ export async function getKamusDb(): Promise<SQLite.SQLiteDatabase> {
 export async function initKamusDb(
 	db: SQLite.SQLiteDatabase,
 ): Promise<void> {
-	await db.execAsync("PRAGMA journal_mode = WAL;");
+	await db.execAsync(`
+		PRAGMA journal_mode = WAL;
+		PRAGMA synchronous = NORMAL;
+		PRAGMA cache_size = -8000;
+		PRAGMA mmap_size = 268435456;
+	`);
 
 	// Verify asset DB was loaded correctly
 	const result = await db.getFirstAsync<{ count: number }>(
@@ -244,21 +245,26 @@ export async function searchEntriesByCategoryAndLang(params: {
 		return getEntriesByCategoryAndLang(category, language);
 	}
 
+	const ftsQuery = buildFtsQuery(normalizedQuery);
+	if (!ftsQuery) {
+		return getEntriesByCategoryAndLang(category, language);
+	}
+
 	const db = await getKamusDb();
 	const lang = mapLanguage(language);
-	const likePattern = `%${normalizedQuery}%`;
 	const rows = await db.getAllAsync<EntryRow>(
 		`
-			SELECT id, lang, category, seq_no, term, term_norm,
-						 definition, def_citation
-			FROM entries
-			WHERE term_norm LIKE ?
-				AND category = ?
-				AND lang = ?
-			ORDER BY seq_no ASC, term_norm ASC
+			SELECT e.id, e.lang, e.category, e.seq_no, e.term, e.term_norm,
+						 e.definition, e.def_citation
+			FROM entries_fts AS f
+			JOIN entries AS e ON e.id = f.rowid
+			WHERE entries_fts MATCH ?
+				AND e.category = ?
+				AND e.lang = ?
+			ORDER BY rank, e.seq_no ASC, e.term_norm ASC
 			LIMIT ?
 		`,
-		[likePattern, category, lang, limit],
+		[ftsQuery, category, lang, limit],
 	);
 
 	return rows.map(mapRowToListItem);
@@ -276,20 +282,25 @@ export async function searchEntriesByLang(params: {
 		return [];
 	}
 
+	const ftsQuery = buildFtsQuery(normalizedQuery);
+	if (!ftsQuery) {
+		return [];
+	}
+
 	const db = await getKamusDb();
 	const lang = mapLanguage(language);
-	const likePattern = `%${normalizedQuery}%`;
 	const rows = await db.getAllAsync<EntryRow>(
 		`
-			SELECT id, lang, category, seq_no, term, term_norm,
-						 definition, def_citation
-			FROM entries
-			WHERE term_norm LIKE ?
-				AND lang = ?
-			ORDER BY term_norm ASC, seq_no ASC
+			SELECT e.id, e.lang, e.category, e.seq_no, e.term, e.term_norm,
+						 e.definition, e.def_citation
+			FROM entries_fts AS f
+			JOIN entries AS e ON e.id = f.rowid
+			WHERE entries_fts MATCH ?
+				AND e.lang = ?
+			ORDER BY rank, e.term_norm ASC, e.seq_no ASC
 			LIMIT ?
 		`,
-		[likePattern, lang, limit],
+		[ftsQuery, lang, limit],
 	);
 
 	return rows.map(mapRowToSearchResult);

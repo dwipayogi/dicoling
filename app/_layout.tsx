@@ -30,7 +30,6 @@ export default function RootLayout() {
 					databaseName="kamus.db"
 					assetSource={{
 						assetId: require("@/assets/db/kamus.db"),
-						forceOverwrite: true,
 					}}
 					onInit={initKamusDb}
 					useSuspense

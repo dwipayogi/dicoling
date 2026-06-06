@@ -1,7 +1,7 @@
 import { colors } from "@/constants/Colors";
 import { size } from "@/constants/Sizes";
 import { Language, useLanguage } from "@/contexts/LanguageContext";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Animated,
   StyleProp,
@@ -25,7 +25,7 @@ const THUMB_SIZE = TOGGLE_HEIGHT - BORDER_WIDTH * 2 - THUMB_PADDING * 2;
 const MAX_TRANSLATE =
   TOGGLE_WIDTH - BORDER_WIDTH * 2 - THUMB_PADDING * 2 - THUMB_SIZE;
 
-export default function LanguageToggle({
+function LanguageToggle({
   variant = "white",
   style,
 }: LanguageToggleProps) {
@@ -124,6 +124,8 @@ export default function LanguageToggle({
     </View>
   );
 }
+
+export default memo(LanguageToggle);
 
 const styles = StyleSheet.create({
   track: {
