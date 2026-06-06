@@ -74,7 +74,7 @@ export default function Masuk() {
         />
       }
     >
-      <AuthField>
+      <AuthField index={0}>
         <Label text={texts.emailLabel} />
         <Input
           placeholder={texts.emailPlaceholder}
@@ -90,7 +90,7 @@ export default function Masuk() {
           error={resolveError(fieldErrors.email)}
         />
       </AuthField>
-      <AuthField>
+      <AuthField index={1}>
         <Label text={texts.passwordLabel} />
         <Input
           placeholder={texts.passwordPlaceholder}

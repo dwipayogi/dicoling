@@ -14,8 +14,18 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Abstract/geometric ornaments for background
+function BackgroundOrnaments() {
+	return (
+		<View style={StyleSheet.absoluteFill} pointerEvents="none">
+			<View style={styles.ornamentCircle1} />
+			<View style={styles.ornamentCircle2} />
+		</View>
+	);
+}
 
 export default function CategoryScreen() {
 	const router = useRouter();
@@ -136,14 +146,18 @@ export default function CategoryScreen() {
 			? notFoundText
 			: emptyDataText;
 
+	const { width } = useWindowDimensions();
+	const isTablet = width >= 768;
+
 	return (
 		<SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-			<View style={styles.header}>
+			<BackgroundOrnaments />
+			<View style={[styles.header, isTablet && styles.headerTablet]}>
 				<Text style={styles.title}>{resolvedCategory.title}</Text>
 				<LanguageToggle variant="dark" />
 			</View>
 
-			<View style={styles.content}>
+			<View style={[styles.content, isTablet && styles.contentTablet]}>
 				<SearchBar
 					placeholder={texts.searchPlaceholder}
 					value={searchQuery}
@@ -178,7 +192,28 @@ export default function CategoryScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.tertiary, // Soft background
+	},
+	// Ornaments
+	ornamentCircle1: {
+		position: "absolute",
+		width: 300,
+		height: 300,
+		borderRadius: 150,
+		backgroundColor: colors.primary,
+		opacity: 0.05,
+		top: -100,
+		left: -100,
+	},
+	ornamentCircle2: {
+		position: "absolute",
+		width: 400,
+		height: 400,
+		borderRadius: 200,
+		backgroundColor: colors.primary,
+		opacity: 0.03,
+		bottom: -150,
+		right: -150,
 	},
 	header: {
 		paddingTop: spacing.lg,
@@ -187,18 +222,32 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
+		zIndex: 10,
+	},
+	headerTablet: {
+		paddingHorizontal: "15%",
 	},
 	title: {
 		fontSize: size.title,
-		fontWeight: "700",
+		fontWeight: "800",
 		color: colors.primary,
 	},
 	content: {
 		flex: 1,
 		backgroundColor: colors.white,
-		borderTopLeftRadius: 28,
-		borderTopRightRadius: 28,
+		borderTopLeftRadius: 32,
+		borderTopRightRadius: 32,
 		paddingHorizontal: spacing.xl,
+		paddingTop: spacing.xl,
+		// Shadow for the content area
+		shadowColor: colors.primary,
+		shadowOffset: { width: 0, height: -4 },
+		shadowOpacity: 0.05,
+		shadowRadius: 10,
+		elevation: 5,
+	},
+	contentTablet: {
+		paddingHorizontal: "15%",
 	},
 	searchBar: {
 		marginBottom: spacing.lg,
@@ -211,18 +260,25 @@ const styles = StyleSheet.create({
 		borderRadius: 16,
 		padding: spacing.lg,
 		borderWidth: 1,
-		borderColor: colors.lightGray,
+		borderColor: colors.white,
+		borderLeftWidth: 4,
+		borderLeftColor: colors.primary, // Accent left border
+		shadowColor: colors.primary,
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.05,
+		shadowRadius: 10,
+		elevation: 2,
 	},
 	cardTitle: {
 		fontSize: size.medium,
-		fontWeight: "700",
+		fontWeight: "800",
 		color: colors.black,
 		marginBottom: spacing.sm,
 	},
 	cardDescription: {
 		fontSize: size.small,
 		color: colors.gray,
-		lineHeight: 18,
+		lineHeight: 20,
 	},
 	cardSeparator: {
 		height: spacing.md,

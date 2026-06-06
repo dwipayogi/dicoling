@@ -46,44 +46,54 @@ function Input({
   blurOnSubmit,
 }: InputProps) {
   const [hidden, setHidden] = useState(secureTextEntry);
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View>
       <View style={styles.inputWrapper}>
-        <TextInput
+        <View
           style={[
-            styles.input,
-            secureTextEntry ? styles.inputWithIcon : undefined,
-            error ? styles.inputError : undefined,
+            styles.inputContainer,
+            isFocused && styles.inputContainerFocused,
+            error ? styles.inputContainerError : undefined,
           ]}
-          placeholder={placeholder}
-          placeholderTextColor={colors.lightGray}
-          value={value}
-          onChangeText={onChangeText}
-          secureTextEntry={hidden}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          autoComplete={autoComplete}
-          textContentType={textContentType}
-          autoCorrect={autoCorrect}
-          returnKeyType={returnKeyType}
-          inputMode={inputMode}
-          onSubmitEditing={onSubmitEditing}
-          blurOnSubmit={blurOnSubmit}
-        />
-        {secureTextEntry ? (
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={() => setHidden((prev) => !prev)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Ionicons
-              name={hidden ? "eye-off-outline" : "eye-outline"}
-              size={20}
-              color={colors.gray}
-            />
-          </TouchableOpacity>
-        ) : null}
+        >
+          <TextInput
+            style={[
+              styles.input,
+              secureTextEntry ? styles.inputWithIcon : undefined,
+            ]}
+            placeholder={placeholder}
+            placeholderTextColor={colors.lightGray}
+            value={value}
+            onChangeText={onChangeText}
+            secureTextEntry={hidden}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            autoComplete={autoComplete}
+            textContentType={textContentType}
+            autoCorrect={autoCorrect}
+            returnKeyType={returnKeyType}
+            inputMode={inputMode}
+            onSubmitEditing={onSubmitEditing}
+            blurOnSubmit={blurOnSubmit}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+          />
+          {secureTextEntry ? (
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setHidden((prev) => !prev)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons
+                name={hidden ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color={isFocused ? colors.primary : colors.gray}
+              />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
       {error ? (
         <Animated.View style={styles.errorContainer}>
@@ -103,22 +113,39 @@ const styles = StyleSheet.create({
     position: "relative",
     width: "100%",
   },
-  input: {
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    width: "100%",
     borderWidth: 1,
-    borderColor: colors.gray,
-    borderRadius: 12,
+    borderColor: colors.lightGray,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  inputContainerFocused: {
+    borderColor: colors.primary,
+    borderWidth: 1.5,
+    shadowOpacity: 0.1,
+  },
+  inputContainerError: {
+    borderColor: colors.danger,
+    borderWidth: 1.5,
+  },
+  input: {
+    flex: 1,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    width: "100%",
     fontSize: size.small,
     color: colors.black,
+    minHeight: 52,
   },
   inputWithIcon: {
     paddingRight: 48,
-  },
-  inputError: {
-    borderColor: colors.danger,
-    borderWidth: 1.5,
   },
   eyeButton: {
     position: "absolute",

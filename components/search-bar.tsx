@@ -1,7 +1,7 @@
 import { colors } from "@/constants/Colors";
 import { size, spacing } from "@/constants/Sizes";
 import { Ionicons } from "@expo/vector-icons";
-import { memo } from "react";
+import { memo, useState } from "react";
 import {
   Pressable,
   StyleProp,
@@ -10,6 +10,11 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -24,12 +29,35 @@ function SearchBar({
   onChangeText,
   style,
 }: SearchBarProps) {
+  const [isFocused, setIsFocused] = useState(false);
+  const focusProgress = useSharedValue(0);
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    focusProgress.value = withTiming(1, { duration: 200 });
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    focusProgress.value = withTiming(0, { duration: 200 });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      borderColor: focusProgress.value > 0 ? colors.primary : "transparent",
+      borderWidth: 1.5,
+      shadowOpacity: 0.05 + focusProgress.value * 0.1,
+      elevation: 2 + focusProgress.value * 4,
+      transform: [{ scale: 1 + focusProgress.value * 0.01 }],
+    };
+  });
+
   return (
-    <View style={[styles.container, style]}>
+    <Animated.View style={[styles.container, animatedStyle, style]}>
       <Ionicons
         name="search-outline"
         size={20}
-        color={colors.gray}
+        color={isFocused ? colors.primary : colors.gray}
         style={styles.icon}
       />
       <TextInput
@@ -38,6 +66,8 @@ function SearchBar({
         placeholderTextColor={colors.lightGray}
         value={value}
         onChangeText={onChangeText}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       />
       {value.length > 0 && (
         <Pressable
@@ -48,7 +78,7 @@ function SearchBar({
           <Ionicons name="close-circle" size={18} color={colors.lightGray} />
         </Pressable>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -58,11 +88,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.white,
     borderRadius: 28,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    elevation: 2,
+    // Base shadow
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
   },
   icon: {
     marginRight: 10,
@@ -72,6 +105,7 @@ const styles = StyleSheet.create({
     fontSize: size.medium,
     color: colors.black,
     padding: 0,
+    minHeight: 24,
   },
   clearButton: {
     marginLeft: spacing.sm,

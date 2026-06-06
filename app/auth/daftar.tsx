@@ -75,7 +75,7 @@ export default function Daftar() {
         />
       }
     >
-      <AuthField>
+      <AuthField index={0}>
         <Label text={texts.nameLabel} />
         <Input
           placeholder={texts.namePlaceholder}
@@ -89,7 +89,7 @@ export default function Daftar() {
           error={resolveError(fieldErrors.name)}
         />
       </AuthField>
-      <AuthField>
+      <AuthField index={1}>
         <Label text={texts.emailLabel} />
         <Input
           placeholder={texts.emailPlaceholder}
@@ -105,7 +105,7 @@ export default function Daftar() {
           error={resolveError(fieldErrors.email)}
         />
       </AuthField>
-      <AuthField>
+      <AuthField index={2}>
         <Label text={texts.passwordLabel} />
         <Input
           placeholder={texts.passwordPlaceholder}

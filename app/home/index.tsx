@@ -25,7 +25,9 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
+	useWindowDimensions,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function getTimeGreeting(texts: {
@@ -78,6 +80,10 @@ export default function HomeScreen() {
 	const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const categories: CategoryItem[] = texts.categories as unknown as CategoryItem[];
+
+	const { width } = useWindowDimensions();
+	const isTablet = width >= 768;
+	const numColumns = isTablet ? 3 : 2;
 
 	const isSearchActive = searchQuery.trim().length > 0;
 
@@ -226,13 +232,18 @@ export default function HomeScreen() {
 	return (
 		<SafeAreaView style={styles.container} edges={["top"]}>
 			<StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+			
+			<View style={StyleSheet.absoluteFill} pointerEvents="none">
+				<View style={styles.ornamentCirclePrimary} />
+				<View style={styles.ornamentCircleSecondary} />
+			</View>
 
-			<View style={styles.header}>
+			<View style={[styles.header, isTablet && styles.headerTablet]}>
 				<Text style={styles.greeting}>{greeting}</Text>
 				<LanguageToggle variant="white" />
 			</View>
 
-			<View style={styles.content}>
+			<View style={[styles.content, isTablet && styles.contentTablet]}>
 				<SearchBar
 					placeholder={texts.searchPlaceholder}
 					value={searchQuery}
@@ -273,15 +284,17 @@ export default function HomeScreen() {
 					</View>
 				) : (
 					/* ----- Category grid view ----- */
-					<FlatList
+					<Animated.FlatList
+						key={numColumns}
 						data={[...categories]}
 						renderItem={renderCategory}
 						keyExtractor={keyExtractor}
-						numColumns={2}
+						numColumns={numColumns}
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={styles.listContent}
 						columnWrapperStyle={styles.row}
 						ItemSeparatorComponent={renderSeparator}
+						entering={FadeInDown.duration(500)}
 					/>
 				)}
 			</View>
@@ -294,6 +307,27 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: colors.primary,
 	},
+	// Ornaments
+	ornamentCirclePrimary: {
+		position: "absolute",
+		width: 300,
+		height: 300,
+		borderRadius: 150,
+		backgroundColor: colors.white,
+		opacity: 0.05,
+		top: -100,
+		right: -100,
+	},
+	ornamentCircleSecondary: {
+		position: "absolute",
+		width: 200,
+		height: 200,
+		borderRadius: 100,
+		backgroundColor: colors.tertiary,
+		opacity: 0.08,
+		top: 50,
+		left: -80,
+	},
 	header: {
 		paddingTop: spacing.lg,
 		paddingBottom: spacing.lg,
@@ -301,19 +335,27 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
+		zIndex: 10,
+	},
+	headerTablet: {
+		paddingHorizontal: "15%",
 	},
 	greeting: {
 		fontSize: size.title,
-		fontWeight: "700",
+		fontWeight: "800",
 		color: colors.white,
+		letterSpacing: 0.5,
 	},
 	content: {
 		flex: 1,
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 28,
-		borderTopRightRadius: 28,
+		backgroundColor: colors.tertiary,
+		borderTopLeftRadius: 32,
+		borderTopRightRadius: 32,
 		paddingHorizontal: spacing.xl,
 		paddingTop: spacing.xxl,
+	},
+	contentTablet: {
+		paddingHorizontal: "15%",
 	},
 	searchBar: {
 		marginBottom: spacing.xl,
@@ -347,10 +389,15 @@ const styles = StyleSheet.create({
 	},
 	resultCard: {
 		backgroundColor: colors.white,
-		borderRadius: 16,
+		borderRadius: 20,
 		padding: spacing.lg,
 		borderWidth: 1,
-		borderColor: colors.lightGray,
+		borderColor: colors.white,
+		shadowColor: colors.primary,
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.05,
+		shadowRadius: 10,
+		elevation: 2,
 	},
 	resultHeader: {
 		flexDirection: "row",

@@ -44,6 +44,7 @@ function Button({
       ]}
       onPress={onPress}
       disabled={isDisabled}
+      activeOpacity={0.8}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
     >
       <View style={styles.content}>
@@ -75,11 +76,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xxl,
-    borderRadius: 12,
+    borderRadius: 24, // More rounded for modern look
     width: "100%",
+    // Shadow for iOS
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    // Elevation for Android
+    elevation: 8,
   },
   buttonLight: {
     backgroundColor: colors.white,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   buttonText: {
     color: colors.white,
@@ -91,7 +103,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   content: {
     flexDirection: "row",
