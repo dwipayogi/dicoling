@@ -62,6 +62,10 @@ export default function RootLayout() {
 									name="home/[category]/[term]"
 									options={{ headerShown: false }}
 								/>
+								<Stack.Screen
+									name="home/profil"
+									options={{ headerShown: false, presentation: "modal" }}
+								/>
 							</Stack>
 						</AuthProvider>
 					</LanguageProvider>

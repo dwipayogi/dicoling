@@ -1,5 +1,4 @@
 import CategoryCard from "@/components/category-card";
-import LanguageToggle from "@/components/language-toggle";
 import SearchBar from "@/components/search-bar";
 import { colors } from "@/constants/Colors";
 import { getCategorySlug } from "@/constants/Data";
@@ -19,7 +18,6 @@ import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
-	FlatList,
 	StatusBar,
 	StyleSheet,
 	Text,
@@ -240,7 +238,12 @@ export default function HomeScreen() {
 
 			<View style={[styles.header, isTablet && styles.headerTablet]}>
 				<Text style={styles.greeting}>{greeting}</Text>
-				<LanguageToggle variant="white" />
+				<TouchableOpacity
+					onPress={() => router.push("/home/profil")}
+					hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+				>
+					<Ionicons name="person-circle-outline" size={36} color={colors.white} />
+				</TouchableOpacity>
 			</View>
 
 			<View style={[styles.content, isTablet && styles.contentTablet]}>
