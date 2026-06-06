@@ -25,8 +25,6 @@ CREATE INDEX IF NOT EXISTS idx_category
 CREATE VIRTUAL TABLE IF NOT EXISTS entries_fts
   USING fts5(
     term,
-    definition,
-    ex_quote,
     content      = 'entries',
     content_rowid = 'id',
     tokenize     = 'unicode61'
@@ -34,14 +32,14 @@ CREATE VIRTUAL TABLE IF NOT EXISTS entries_fts
 
 CREATE TRIGGER IF NOT EXISTS fts_ai
   AFTER INSERT ON entries BEGIN
-    INSERT INTO entries_fts(rowid, term, definition, ex_quote)
-    VALUES (new.id, new.term, new.definition, new.ex_quote);
+    INSERT INTO entries_fts(rowid, term)
+    VALUES (new.id, new.term);
   END;
 
 CREATE TRIGGER IF NOT EXISTS fts_ad
   AFTER DELETE ON entries BEGIN
-    INSERT INTO entries_fts(entries_fts, rowid, term, definition, ex_quote)
-    VALUES ('delete', old.id, old.term, old.definition, old.ex_quote);
+    INSERT INTO entries_fts(entries_fts, rowid, term)
+    VALUES ('delete', old.id, old.term);
   END;
 
 -- Auth: user accounts (offline-first)
