@@ -344,10 +344,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: "15%",
 	},
 	greeting: {
-		fontSize: size.title,
-		fontWeight: "800",
+		fontSize: size.large,
+		fontWeight: "700",
 		color: colors.white,
-		letterSpacing: 0.5,
 	},
 	content: {
 		flex: 1,

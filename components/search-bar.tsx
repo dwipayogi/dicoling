@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from "react-native";
 import Animated, {
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -44,7 +45,11 @@ function SearchBar({
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      borderColor: focusProgress.value > 0 ? colors.primary : "transparent",
+      borderColor: interpolateColor(
+        focusProgress.value,
+        [0, 1],
+        ["transparent", colors.primary]
+      ),
       borderWidth: 1.5,
       shadowOpacity: 0.05 + focusProgress.value * 0.1,
       elevation: 2 + focusProgress.value * 4,
