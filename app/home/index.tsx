@@ -27,6 +27,7 @@ import {
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
 function getTimeGreeting(texts: {
 	greetingMorning: string;
@@ -87,8 +88,9 @@ export default function HomeScreen() {
 
 	const greeting = useMemo(() => {
 		const timeGreeting = getTimeGreeting(texts);
-		const name = user?.name ?? "";
-		return name ? `${timeGreeting}, ${name}` : timeGreeting;
+		const fullName = (user?.name ?? "").trim();
+		const firstName = fullName.split(/\s+/)[0];
+		return firstName ? `${timeGreeting}, ${firstName}` : timeGreeting;
 	}, [texts, user?.name]);
 
 	/* ----------------------------- Search effect ----------------------------- */
@@ -166,10 +168,6 @@ export default function HomeScreen() {
 	);
 
 	const keyExtractor = useCallback((item: { id: string }) => item.id, []);
-	const renderSeparator = useCallback(
-		() => <View style={styles.rowSeparator} />,
-		[],
-	);
 
 	/* ----------------------------- Search results ---------------------------- */
 	const getCategoryDisplayName = useCallback(
@@ -228,25 +226,31 @@ export default function HomeScreen() {
 	}, [isSearching, isSearchActive, searchResults.length, language]);
 
 	return (
-		<SafeAreaView style={styles.container} edges={["top"]}>
-			<StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-			
-			<View style={StyleSheet.absoluteFill} pointerEvents="none">
-				<View style={styles.ornamentCirclePrimary} />
-				<View style={styles.ornamentCircleSecondary} />
-			</View>
+		<LinearGradient
+			colors={[colors.primary, colors.primaryDark]}
+			style={styles.container}
+		>
+			<SafeAreaView style={styles.safeArea} edges={["top"]}>
+				<StatusBar barStyle="light-content" backgroundColor={colors.primaryDark} />
+				
+				<View style={StyleSheet.absoluteFill} pointerEvents="none">
+					<View style={styles.ornamentCirclePrimary} />
+					<View style={styles.ornamentCircleSecondary} />
+				</View>
 
-			<View style={[styles.header, isTablet && styles.headerTablet]}>
-				<Text style={styles.greeting}>{greeting}</Text>
-				<TouchableOpacity
-					onPress={() => router.push("/home/profil")}
-					hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-				>
-					<Ionicons name="person-circle-outline" size={36} color={colors.white} />
-				</TouchableOpacity>
-			</View>
+				<View style={[styles.header, isTablet && styles.headerTablet]}>
+					<Text style={styles.greeting} numberOfLines={1} ellipsizeMode="tail">
+						{greeting}
+					</Text>
+					<TouchableOpacity
+						onPress={() => router.push("/home/profil")}
+						hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+					>
+						<Ionicons name="person-circle-outline" size={38} color={colors.white} />
+					</TouchableOpacity>
+				</View>
 
-			<View style={[styles.content, isTablet && styles.contentTablet]}>
+				<View style={[styles.content, isTablet && styles.contentTablet]}>
 				<SearchBar
 					placeholder={texts.searchPlaceholder}
 					value={searchQuery}
@@ -296,19 +300,21 @@ export default function HomeScreen() {
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={styles.listContent}
 						columnWrapperStyle={styles.row}
-						ItemSeparatorComponent={renderSeparator}
 						entering={FadeInDown.duration(500)}
 					/>
 				)}
 			</View>
-		</SafeAreaView>
+			</SafeAreaView>
+		</LinearGradient>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.primary,
+	},
+	safeArea: {
+		flex: 1,
 	},
 	// Ornaments
 	ornamentCirclePrimary: {
@@ -326,8 +332,8 @@ const styles = StyleSheet.create({
 		width: 200,
 		height: 200,
 		borderRadius: 100,
-		backgroundColor: colors.tertiary,
-		opacity: 0.08,
+		backgroundColor: colors.white,
+		opacity: 0.04,
 		top: 50,
 		left: -80,
 	},
@@ -347,6 +353,8 @@ const styles = StyleSheet.create({
 		fontSize: size.large,
 		fontWeight: "700",
 		color: colors.white,
+		flex: 1,
+		marginRight: spacing.md,
 	},
 	content: {
 		flex: 1,
@@ -364,6 +372,7 @@ const styles = StyleSheet.create({
 	},
 	listContent: {
 		paddingBottom: spacing.xxl,
+		rowGap: 14,
 	},
 	gridItem: {
 		flexGrow: 1,
@@ -372,9 +381,6 @@ const styles = StyleSheet.create({
 	},
 	row: {
 		gap: 14,
-	},
-	rowSeparator: {
-		height: 14,
 	},
 
 	/* Search results */
@@ -391,13 +397,15 @@ const styles = StyleSheet.create({
 	},
 	resultCard: {
 		backgroundColor: colors.white,
-		borderRadius: 20,
+		borderRadius: 16,
 		padding: spacing.lg,
 		borderWidth: 1,
-		borderColor: colors.white,
-		shadowColor: colors.primary,
+		borderColor: colors.lightGray,
+		borderLeftWidth: 4,
+		borderLeftColor: colors.primaryDark,
+		shadowColor: colors.primaryDark,
 		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.05,
+		shadowOpacity: 0.04,
 		shadowRadius: 10,
 		elevation: 2,
 	},
@@ -410,7 +418,7 @@ const styles = StyleSheet.create({
 	},
 	resultTitle: {
 		fontSize: size.medium,
-		fontWeight: "700",
+		fontWeight: "800",
 		color: colors.black,
 		flexShrink: 1,
 	},
@@ -419,11 +427,13 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		paddingHorizontal: spacing.md,
 		paddingVertical: spacing.xs,
+		borderWidth: 1,
+		borderColor: colors.primaryLight,
 	},
 	categoryBadgeText: {
 		fontSize: size.extraSmall,
-		fontWeight: "600",
-		color: colors.primary,
+		fontWeight: "700",
+		color: colors.primaryDark,
 	},
 	resultDescription: {
 		fontSize: size.small,

@@ -73,37 +73,41 @@ export default memo(Button);
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xxl,
-    borderRadius: 24, // More rounded for modern look
+    backgroundColor: colors.primaryDark,
+    height: 52,
+    borderRadius: 16,
     width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
     // Shadow for iOS
-    shadowColor: colors.primary,
+    shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
     // Elevation for Android
-    elevation: 8,
+    elevation: 4,
   },
   buttonLight: {
-    backgroundColor: colors.white,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+    backgroundColor: colors.secondary,
+    borderWidth: 1.2,
+    borderColor: colors.primaryLight,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   buttonText: {
     color: colors.white,
-    fontSize: size.small,
-    fontWeight: "bold",
+    fontSize: size.medium,
+    fontWeight: "700",
     textAlign: "center",
+    letterSpacing: 0.3,
   },
   buttonTextLight: {
-    color: colors.primary,
+    color: colors.primaryDark,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -111,8 +115,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    width: "100%",
   },
   spinner: {
     marginRight: spacing.sm,
   },
 });
+

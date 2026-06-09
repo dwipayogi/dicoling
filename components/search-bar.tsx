@@ -48,12 +48,12 @@ function SearchBar({
       borderColor: interpolateColor(
         focusProgress.value,
         [0, 1],
-        ["transparent", colors.primary]
+        [colors.lightGray, colors.primary]
       ),
-      borderWidth: 1.5,
-      shadowOpacity: 0.05 + focusProgress.value * 0.1,
-      elevation: 2 + focusProgress.value * 4,
-      transform: [{ scale: 1 + focusProgress.value * 0.01 }],
+      borderWidth: 1.2,
+      shadowOpacity: 0.02 + focusProgress.value * 0.06,
+      elevation: 1 + focusProgress.value * 3,
+      transform: [{ scale: 1 + focusProgress.value * 0.005 }],
     };
   });
 
@@ -62,7 +62,7 @@ function SearchBar({
       <Ionicons
         name="search-outline"
         size={20}
-        color={isFocused ? colors.primary : colors.gray}
+        color={isFocused ? colors.primaryDark : colors.gray}
         style={styles.icon}
       />
       <TextInput
@@ -94,12 +94,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.white,
-    borderRadius: 28,
+    borderRadius: 16,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     // Base shadow
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
   },
   icon: {

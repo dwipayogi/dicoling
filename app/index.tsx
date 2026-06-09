@@ -10,6 +10,7 @@ import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 
 function GabunganOrnaments() {
   return (
@@ -29,78 +30,85 @@ export default function Index() {
   const isTablet = width >= 768;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <GabunganOrnaments />
-      <View style={styles.contentWrapper}>
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(800)}
-          style={[styles.headerSection, isTablet && styles.headerTablet]}
-        >
-          <View style={styles.headerTop}>
-            <View style={styles.logoRow}>
-              <View style={styles.logoBadge}>
-                <Image
-                  source={images.unyLogo}
-                  style={styles.unyLogo}
-                  contentFit="contain"
-                />
+    <LinearGradient
+      colors={[colors.primary, colors.primaryDark]}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <GabunganOrnaments />
+        <View style={styles.contentWrapper}>
+          <Animated.View
+            entering={FadeInDown.delay(100).duration(800)}
+            style={[styles.headerSection, isTablet && styles.headerTablet]}
+          >
+            <View style={styles.headerTop}>
+              <View style={styles.logoRow}>
+                <View style={styles.logoBadge}>
+                  <Image
+                    source={images.unyLogo}
+                    style={styles.unyLogo}
+                    contentFit="contain"
+                  />
+                </View>
+                <View style={styles.logoBadge}>
+                  <Image
+                    source={images.appIcon}
+                    style={styles.appLogo}
+                    contentFit="contain"
+                  />
+                </View>
               </View>
-              <View style={styles.logoBadge}>
-                <Image
-                  source={images.appIcon}
-                  style={styles.appLogo}
-                  contentFit="contain"
-                />
-              </View>
+              <LanguageToggle variant="white" style={styles.languageToggle} />
             </View>
-            <LanguageToggle variant="white" style={styles.languageToggle} />
-          </View>
 
-          <View style={styles.titleContainer}>
-            <Text style={styles.appTitle}>Dicoling</Text>
-            <Text style={styles.appSubtitle}>Dictionnaire de Linguistique</Text>
-          </View>
-        </Animated.View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.appTitle}>Dicoling</Text>
+              <Text style={styles.appSubtitle}>Dictionnaire de Linguistique</Text>
+            </View>
+          </Animated.View>
 
-        <Animated.View
-          entering={FadeInUp.delay(300).duration(1000)}
-          style={[styles.imageSection, isTablet && styles.imageTablet]}
-        >
-          <View style={styles.imageContainer}>
-            <Image
-              source={images.rektorat}
-              style={styles.rektoratImage}
-              contentFit="cover"
-            />
-            <View style={styles.imageOverlay} />
-          </View>
-        </Animated.View>
+          <Animated.View
+            entering={FadeInUp.delay(300).duration(1000)}
+            style={[styles.imageSection, isTablet && styles.imageTablet]}
+          >
+            <View style={styles.imageContainer}>
+              <Image
+                source={images.rektorat}
+                style={styles.rektoratImage}
+                contentFit="cover"
+              />
+              <View style={styles.imageOverlay} />
+            </View>
+          </Animated.View>
 
-        <Animated.View
-          entering={FadeInUp.delay(500).duration(800)}
-          style={[styles.bottomSection, isTablet && styles.bottomTablet]}
-        >
-          <Text style={styles.descriptionText}>{texts.description}</Text>
+          <Animated.View
+            entering={FadeInUp.delay(500).duration(800)}
+            style={[styles.bottomSection, isTablet && styles.bottomTablet]}
+          >
+            <Text style={styles.descriptionText}>{texts.description}</Text>
 
-          <View style={styles.actionContainer}>
-            <Button
-              title={texts.enterButton}
-              variant="light"
-              textStyle={styles.masukButtonText}
-              onPress={() => router.replace("/auth/masuk")}
-            />
-            <Text style={styles.footerText}>{texts.footer}</Text>
-          </View>
-        </Animated.View>
-      </View>
-    </SafeAreaView>
+            <View style={styles.actionContainer}>
+              <Button
+                title={texts.enterButton}
+                variant="light"
+                textStyle={styles.masukButtonText}
+                onPress={() => router.replace("/auth/masuk")}
+              />
+              <Text style={styles.footerText}>{texts.footer}</Text>
+            </View>
+          </Animated.View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+  },
+  safeArea: {
+    flex: 1,
   },
   contentWrapper: {
     flex: 1,
@@ -157,7 +165,7 @@ const styles = StyleSheet.create({
   logoBadge: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     backgroundColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
@@ -226,7 +234,7 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 96, 222, 0.1)", // Very subtle primary tint
+    backgroundColor: "rgba(0, 96, 222, 0.08)", // Very subtle royal blue tint
   },
   bottomSection: {
     paddingHorizontal: spacing.xxl,

@@ -6,8 +6,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Abstract/geometric ornaments for background
 function BackgroundOrnaments() {
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
 	
 	const { width } = useWindowDimensions();
 	const isTablet = width >= 768;
+	const insets = useSafeAreaInsets();
 
 	const titleText = language === "FR" ? "Profil" : "Profil";
 	const nameLabel = language === "FR" ? "Nom" : "Nama";
@@ -40,70 +42,85 @@ export default function ProfileScreen() {
 	};
 
 	return (
-		<SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-			<BackgroundOrnaments />
-			
-			<View style={[styles.header, isTablet && styles.headerTablet]}>
-				<TouchableOpacity
-					onPress={() => router.back()}
-					hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-					style={styles.backButton}
-				>
-					<Ionicons name="arrow-back" size={28} color={colors.primary} />
-				</TouchableOpacity>
-				<Text style={styles.title}>{titleText}</Text>
-				<View style={styles.headerSpacer} />
-			</View>
-
-			<View style={[styles.content, isTablet && styles.contentTablet]}>
-				<View style={styles.card}>
-					<View style={styles.avatarContainer}>
-						<Ionicons name="person" size={40} color={colors.primary} />
-					</View>
-					<View style={styles.infoContainer}>
-						<Text style={styles.infoLabel}>{nameLabel}</Text>
-						<Text style={styles.infoValue}>{user?.name || "-"}</Text>
-						
-						<View style={styles.divider} />
-						
-						<Text style={styles.infoLabel}>{emailLabel}</Text>
-						<Text style={styles.infoValue}>{user?.email || "-"}</Text>
-					</View>
-				</View>
-
-				<Text style={styles.sectionTitle}>{settingsTitle}</Text>
+		<LinearGradient
+			colors={[colors.primary, colors.primaryDark]}
+			style={styles.container}
+		>
+			<SafeAreaView style={styles.safeArea} edges={["top"]}>
+				<BackgroundOrnaments />
 				
-				<View style={styles.card}>
-					<View style={styles.settingRow}>
-						<View style={styles.settingTextContainer}>
-							<Ionicons name="globe-outline" size={24} color={colors.primary} style={styles.settingIcon} />
-							<Text style={styles.settingLabel}>{languageLabel}</Text>
+				<View style={[styles.header, isTablet && styles.headerTablet]}>
+					<TouchableOpacity
+						onPress={() => router.back()}
+						hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+						style={styles.backButton}
+					>
+						<Ionicons name="arrow-back" size={26} color={colors.primaryDark} />
+					</TouchableOpacity>
+					<Text style={styles.title}>{titleText}</Text>
+					<View style={styles.headerSpacer} />
+				</View>
+
+				<ScrollView
+					style={styles.content}
+					contentContainerStyle={[
+						styles.scrollContent,
+						isTablet && styles.scrollContentTablet,
+						{ paddingBottom: insets.bottom }
+					]}
+					showsVerticalScrollIndicator={false}
+				>
+					<View style={styles.card}>
+						<View style={styles.avatarContainer}>
+							<Ionicons name="person" size={40} color={colors.primaryDark} />
 						</View>
-						<LanguageToggle variant="dark" />
+						<View style={styles.infoContainer}>
+							<Text style={styles.infoLabel}>{nameLabel}</Text>
+							<Text style={styles.infoValue}>{user?.name || "-"}</Text>
+							
+							<View style={styles.divider} />
+							
+							<Text style={styles.infoLabel}>{emailLabel}</Text>
+							<Text style={styles.infoValue}>{user?.email || "-"}</Text>
+						</View>
 					</View>
-				</View>
 
-				<View style={styles.spacer} />
+					<Text style={styles.sectionTitle}>{settingsTitle}</Text>
+					
+					<View style={styles.card}>
+						<View style={styles.settingRow}>
+							<View style={styles.settingTextContainer}>
+								<Ionicons name="globe-outline" size={24} color={colors.primaryDark} style={styles.settingIcon} />
+								<Text style={styles.settingLabel}>{languageLabel}</Text>
+							</View>
+							<LanguageToggle variant="dark" />
+						</View>
+					</View>
 
-				<View style={styles.footerInfo}>
-					<Text style={styles.versionText}>Versi 1.0.0</Text>
-					<Text style={styles.creditsText}>Dibuat oleh Tim Universitas Negeri Yogyakarta</Text>
-				</View>
+					<View style={styles.spacer} />
 
-				<Button
-					title={logoutText}
-					onPress={handleLogout}
-					style={styles.logoutButton}
-				/>
-			</View>
-		</SafeAreaView>
+					<View style={styles.footerInfo}>
+						<Text style={styles.versionText}>Versi 1.0.0</Text>
+						<Text style={styles.creditsText}>Dibuat oleh Tim Universitas Negeri Yogyakarta</Text>
+					</View>
+
+					<Button
+						title={logoutText}
+						onPress={handleLogout}
+						style={styles.logoutButton}
+					/>
+				</ScrollView>
+			</SafeAreaView>
+		</LinearGradient>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.tertiary,
+	},
+	safeArea: {
+		flex: 1,
 	},
 	// Ornaments
 	ornamentCircle1: {
@@ -111,7 +128,7 @@ const styles = StyleSheet.create({
 		width: 300,
 		height: 300,
 		borderRadius: 150,
-		backgroundColor: colors.primary,
+		backgroundColor: colors.white,
 		opacity: 0.05,
 		top: -100,
 		left: -100,
@@ -121,8 +138,8 @@ const styles = StyleSheet.create({
 		width: 400,
 		height: 400,
 		borderRadius: 200,
-		backgroundColor: colors.primary,
-		opacity: 0.03,
+		backgroundColor: colors.white,
+		opacity: 0.04,
 		bottom: -150,
 		right: -150,
 	},
@@ -139,64 +156,73 @@ const styles = StyleSheet.create({
 		paddingHorizontal: "15%",
 	},
 	backButton: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
+		width: 42,
+		height: 42,
+		borderRadius: 14,
 		backgroundColor: colors.white,
 		alignItems: "center",
 		justifyContent: "center",
-		shadowColor: colors.primary,
+		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
-		shadowRadius: 4,
+		shadowRadius: 6,
 		elevation: 2,
+		borderWidth: 1,
+		borderColor: colors.lightGray,
 	},
 	title: {
 		fontSize: size.title,
 		fontWeight: "800",
-		color: colors.primary,
+		color: colors.white,
 	},
 	headerSpacer: {
-		width: 40, // Match backButton width to center the title
+		width: 42, // Match backButton width to center the title
 	},
 	content: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.tertiary,
 		borderTopLeftRadius: 32,
 		borderTopRightRadius: 32,
-		paddingHorizontal: spacing.xl,
-		paddingTop: spacing.xxl,
-		shadowColor: colors.primary,
+		shadowColor: "#000",
 		shadowOffset: { width: 0, height: -4 },
 		shadowOpacity: 0.05,
 		shadowRadius: 10,
 		elevation: 5,
 	},
-	contentTablet: {
+	contentTablet: {},
+	scrollContent: {
+		flexGrow: 1,
+		paddingHorizontal: spacing.xl,
+		paddingTop: spacing.xxl,
+	},
+	scrollContentTablet: {
 		paddingHorizontal: "20%",
 	},
 	card: {
 		backgroundColor: colors.white,
-		borderRadius: 24,
+		borderRadius: 20,
 		padding: spacing.xl,
 		marginBottom: spacing.lg,
 		borderWidth: 1,
-		borderColor: colors.tertiary,
-		shadowColor: colors.primary,
+		borderColor: colors.lightGray,
+		shadowColor: colors.primaryDark,
 		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.05,
-		shadowRadius: 12,
-		elevation: 3,
+		shadowOpacity: 0.04,
+		shadowRadius: 10,
+		elevation: 2,
 		alignItems: "center",
+		width: "100%",
 	},
 	avatarContainer: {
 		width: 80,
 		height: 80,
 		borderRadius: 40,
-		backgroundColor: colors.tertiary,
+		backgroundColor: colors.secondary,
 		alignItems: "center",
 		justifyContent: "center",
 		marginBottom: spacing.lg,
+		borderWidth: 1,
+		borderColor: colors.primaryLight,
 	},
 	infoContainer: {
 		width: "100%",
@@ -214,17 +240,17 @@ const styles = StyleSheet.create({
 	},
 	divider: {
 		height: 1,
-		backgroundColor: colors.tertiary,
+		backgroundColor: colors.lightGray,
 		marginVertical: spacing.md,
 		width: "100%",
 	},
 	sectionTitle: {
 		fontSize: size.medium,
 		fontWeight: "800",
-		color: colors.primary,
+		color: colors.primaryDark,
 		marginTop: spacing.md,
 		marginBottom: spacing.md,
-		marginLeft: spacing.sm,
+		marginLeft: spacing.xs,
 	},
 	settingRow: {
 		flexDirection: "row",
@@ -254,14 +280,16 @@ const styles = StyleSheet.create({
 	versionText: {
 		fontSize: size.small,
 		fontWeight: "700",
-		color: colors.lightGray,
+		color: colors.gray,
+		opacity: 0.6,
 	},
 	creditsText: {
 		fontSize: size.extraSmall,
-		color: colors.lightGray,
+		color: colors.gray,
+		opacity: 0.6,
+		marginTop: 2,
 	},
 	logoutButton: {
-		marginBottom: spacing.xxl,
 		backgroundColor: colors.danger,
 		shadowColor: colors.danger,
 	},

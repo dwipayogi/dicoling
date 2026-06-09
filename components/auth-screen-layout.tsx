@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import { Link, type Href } from "expo-router";
 import { type ReactNode } from "react";
@@ -49,65 +50,73 @@ export function AuthScreenLayout({
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isAndroid = process.env.EXPO_OS === "android";
-  const paddingTop = spacing.xxl + (isAndroid ? insets.top : 0);
-  const paddingBottom = spacing.xxl + (isAndroid ? insets.bottom : 0);
+  const paddingTop = spacing.xxxl + (isAndroid ? insets.top : 0);
+  const paddingBottom = spacing.xxxl + (isAndroid ? insets.bottom : 0);
 
-  // For tablet sizes, constrain form width
+  // Constrain width
   const isTablet = width >= 768;
-  const formWidth = isTablet ? 480 : "100%";
+  const formWidth = isTablet ? 460 : "100%";
 
   const Container = isAndroid ? KeyboardAvoidingView : View;
   const containerProps = isAndroid
-    ? { behavior: "height" as const, style: styles.flex }
+    ? { behavior: "padding" as const, style: styles.flex }
     : { style: styles.flex };
 
   return (
     <Container {...containerProps}>
-      <ScrollView
-        style={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-        contentContainerStyle={[styles.container, { paddingTop, paddingBottom }]}
+      <LinearGradient
+        colors={[colors.primary, colors.primaryDark]}
+        style={styles.flex}
       >
-        <BackgroundOrnaments />
-        
-        <View style={[styles.languageToggle, { top: insets.top + spacing.lg }]}>
-          <LanguageToggle variant="dark" />
-        </View>
-
-        <View style={[styles.content, { width: formWidth }, isTablet && styles.cardStyle]}>
-          <View style={styles.header}>
-            <Image
-              source={images.appIcon}
-              style={styles.logo}
-              contentFit="contain"
-            />
-            <Text style={styles.appName}>Dicoling</Text>
-            <Text style={styles.appDescription}>
-              Dictionnaire de Linguistique
-            </Text>
+        <ScrollView
+          style={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          contentContainerStyle={[styles.container, { paddingTop, paddingBottom }]}
+        >
+          <BackgroundOrnaments />
+          
+          <View style={[styles.languageToggle, { top: insets.top + spacing.lg }]}>
+            <LanguageToggle variant="white" />
           </View>
 
-          {generalError ? (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorBannerText} selectable>
-                {generalError}
+          <View style={[styles.content, { width: formWidth }, styles.cardStyle]}>
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={images.appIcon}
+                  style={styles.logo}
+                  contentFit="contain"
+                />
+              </View>
+              <Text style={styles.appName}>Dicoling</Text>
+              <Text style={styles.appDescription}>
+                Dictionnaire de Linguistique
               </Text>
             </View>
-          ) : null}
 
-          <View style={styles.fields}>{children}</View>
+            {generalError ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorBannerText} selectable>
+                  {generalError}
+                </Text>
+              </View>
+            ) : null}
 
-          <Button
-            title={actionLabel}
-            onPress={onAction}
-            disabled={isLoading}
-            loading={isLoading}
-          />
+            <View style={styles.fields}>{children}</View>
 
-          {footer ? <View style={styles.footer}>{footer}</View> : null}
-        </View>
-      </ScrollView>
+            <Button
+              title={actionLabel}
+              onPress={onAction}
+              disabled={isLoading}
+              loading={isLoading}
+              style={styles.actionButton}
+            />
+
+            {footer ? <View style={styles.footer}>{footer}</View> : null}
+          </View>
+        </ScrollView>
+      </LinearGradient>
     </Container>
   );
 }
@@ -150,11 +159,11 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: "transparent",
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -164,7 +173,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.white,
     opacity: 0.05,
     top: -100,
     left: -100,
@@ -174,67 +183,80 @@ const styles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    backgroundColor: colors.primary,
-    opacity: 0.03,
+    backgroundColor: colors.white,
+    opacity: 0.04,
     bottom: -150,
     right: -150,
   },
   ornamentWave: {
     position: "absolute",
-    width: 200,
-    height: 80,
-    backgroundColor: colors.primary,
+    width: 240,
+    height: 90,
+    backgroundColor: colors.white,
     opacity: 0.04,
-    borderRadius: 40,
+    borderRadius: 45,
     transform: [{ rotate: "-45deg" }],
-    top: "30%",
-    right: -50,
+    top: "25%",
+    right: -60,
   },
   cardStyle: {
     backgroundColor: colors.white,
-    padding: spacing.xxl,
-    borderRadius: 32,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
+    paddingVertical: spacing.xxl + spacing.sm,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
   },
   content: {
     alignItems: "center",
     gap: spacing.lg,
+    width: "100%",
   },
   languageToggle: {
     position: "absolute",
-    right: spacing.lg,
+    right: spacing.xl,
     zIndex: 10,
   },
   header: {
     alignItems: "center",
     gap: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  logo: {
-    width: 90,
-    height: 90,
     marginBottom: spacing.sm,
   },
+  logoContainer: {
+    width: 76,
+    height: 76,
+    borderRadius: 22,
+    backgroundColor: colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  logo: {
+    width: 44,
+    height: 44,
+  },
   appName: {
-    fontSize: size.extraLarge,
+    fontSize: size.extraLarge - 2,
     fontWeight: "800",
-    color: colors.primary,
+    color: colors.black,
     letterSpacing: 0.5,
   },
   appDescription: {
     fontSize: size.medium,
     color: colors.gray,
+    fontWeight: "500",
   },
   errorBanner: {
     width: "100%",
     backgroundColor: "#FEF2F2",
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: "#FECACA",
-    borderRadius: 12,
+    borderRadius: 14,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
   },
@@ -242,6 +264,7 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: size.small,
     textAlign: "center",
+    fontWeight: "600",
   },
   field: {
     width: "100%",
@@ -249,6 +272,10 @@ const styles = StyleSheet.create({
   fields: {
     width: "100%",
     gap: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  actionButton: {
+    marginTop: spacing.sm,
   },
   footer: {
     marginTop: spacing.md,
@@ -256,12 +283,16 @@ const styles = StyleSheet.create({
   linkRow: {
     flexDirection: "row",
     gap: spacing.xs,
+    alignItems: "center",
   },
   linkTextMuted: {
     color: colors.gray,
+    fontSize: size.small,
+    fontWeight: "500",
   },
   linkTextPrimary: {
-    color: colors.primary,
-    fontWeight: "bold",
+    color: colors.primaryDark,
+    fontWeight: "700",
+    fontSize: size.small,
   },
 });

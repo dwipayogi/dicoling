@@ -15,7 +15,9 @@ import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Abstract/geometric ornaments for background
 function BackgroundOrnaments() {
@@ -29,6 +31,7 @@ function BackgroundOrnaments() {
 
 export default function CategoryScreen() {
 	const router = useRouter();
+	const insets = useSafeAreaInsets();
 	const { language } = useLanguage();
 	const texts = t(language).home;
 	const { category } = useLocalSearchParams<{
@@ -150,49 +153,64 @@ export default function CategoryScreen() {
 	const isTablet = width >= 768;
 
 	return (
-		<SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-			<BackgroundOrnaments />
-			<View style={[styles.header, isTablet && styles.headerTablet]}>
-				<Text style={styles.title}>{resolvedCategory.title}</Text>
-				<LanguageToggle variant="dark" />
-			</View>
+		<LinearGradient
+			colors={[colors.primary, colors.primaryDark]}
+			style={styles.container}
+		>
+			<SafeAreaView style={styles.safeArea} edges={["top"]}>
+				<BackgroundOrnaments />
+				<View style={[styles.header, isTablet && styles.headerTablet]}>
+					<Text style={styles.title}>{resolvedCategory.title}</Text>
+					<LanguageToggle variant="white" />
+				</View>
 
-			<View style={[styles.content, isTablet && styles.contentTablet]}>
-				<SearchBar
-					placeholder={texts.searchPlaceholder}
-					value={searchQuery}
-					onChangeText={setSearchQuery}
-					style={styles.searchBar}
-				/>
+				<View style={[styles.content, isTablet && styles.contentTablet]}>
+					<SearchBar
+						placeholder={texts.searchPlaceholder}
+						value={searchQuery}
+						onChangeText={setSearchQuery}
+						style={styles.searchBar}
+					/>
 
-				<FlashList
-					data={items}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.listContent}
-					ItemSeparatorComponent={renderSeparator}
-					ListEmptyComponent={
-						isLoading ? (
-							<View style={styles.emptyState}>
-								<ActivityIndicator size="large" color={colors.primary} />
-							</View>
-						) : (
-							<View style={styles.emptyState}>
-								<Text style={styles.emptyText}>{emptyText}</Text>
-							</View>
-						)
-					}
-				/>
-			</View>
-		</SafeAreaView>
+					<FlashList
+						data={items}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={styles.listContent}
+						ItemSeparatorComponent={renderSeparator}
+						ListEmptyComponent={
+							isLoading ? (
+								<View style={styles.emptyState}>
+									<ActivityIndicator size="large" color={colors.primary} />
+								</View>
+							) : (
+								<View style={styles.emptyState}>
+									<Text style={styles.emptyText}>{emptyText}</Text>
+								</View>
+							)
+						}
+					/>
+				</View>
+
+				<TouchableOpacity
+					style={[styles.floatingHomeButton, { bottom: 20 + insets.bottom }]}
+					onPress={() => router.push("/home")}
+					activeOpacity={0.8}
+				>
+					<Ionicons name="home" size={24} color={colors.white} />
+				</TouchableOpacity>
+			</SafeAreaView>
+		</LinearGradient>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.tertiary, // Soft background
+	},
+	safeArea: {
+		flex: 1,
 	},
 	// Ornaments
 	ornamentCircle1: {
@@ -200,7 +218,7 @@ const styles = StyleSheet.create({
 		width: 300,
 		height: 300,
 		borderRadius: 150,
-		backgroundColor: colors.primary,
+		backgroundColor: colors.white,
 		opacity: 0.05,
 		top: -100,
 		left: -100,
@@ -210,8 +228,8 @@ const styles = StyleSheet.create({
 		width: 400,
 		height: 400,
 		borderRadius: 200,
-		backgroundColor: colors.primary,
-		opacity: 0.03,
+		backgroundColor: colors.white,
+		opacity: 0.04,
 		bottom: -150,
 		right: -150,
 	},
@@ -230,17 +248,17 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: size.title,
 		fontWeight: "800",
-		color: colors.primary,
+		color: colors.white,
 	},
 	content: {
 		flex: 1,
-		backgroundColor: colors.white,
+		backgroundColor: colors.tertiary,
 		borderTopLeftRadius: 32,
 		borderTopRightRadius: 32,
 		paddingHorizontal: spacing.xl,
 		paddingTop: spacing.xl,
 		// Shadow for the content area
-		shadowColor: colors.primary,
+		shadowColor: "#000",
 		shadowOffset: { width: 0, height: -4 },
 		shadowOpacity: 0.05,
 		shadowRadius: 10,
@@ -260,12 +278,12 @@ const styles = StyleSheet.create({
 		borderRadius: 16,
 		padding: spacing.lg,
 		borderWidth: 1,
-		borderColor: colors.white,
+		borderColor: colors.lightGray,
 		borderLeftWidth: 4,
-		borderLeftColor: colors.primary, // Accent left border
-		shadowColor: colors.primary,
+		borderLeftColor: colors.primaryDark, // Accent left border
+		shadowColor: colors.primaryDark,
 		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.05,
+		shadowOpacity: 0.04,
 		shadowRadius: 10,
 		elevation: 2,
 	},
@@ -290,5 +308,21 @@ const styles = StyleSheet.create({
 	emptyText: {
 		fontSize: size.small,
 		color: colors.gray,
+	},
+	floatingHomeButton: {
+		position: "absolute",
+		right: 20,
+		width: 56,
+		height: 56,
+		borderRadius: 28,
+		backgroundColor: colors.primary,
+		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.2,
+		shadowRadius: 6,
+		elevation: 5,
+		zIndex: 999,
 	},
 });

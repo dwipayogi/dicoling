@@ -6,11 +6,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getEntryDetailByTerm, type EntryDetail } from "@/services/repository";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CategoryDetailScreen() {
 	const router = useRouter();
+	const insets = useSafeAreaInsets();
 	const { language } = useLanguage();
 	const { category, term } = useLocalSearchParams<{
 		category?: string | string[];
@@ -82,7 +85,7 @@ export default function CategoryDetailScreen() {
 		};
 	}, [termValue, resolvedCategory.key, language]);
 
-	const headerTitle = entry?.name ?? resolvedCategory.title;
+	const termTitle = entry?.name ?? resolvedCategory.title;
 	const exampleLabel = language === "FR" ? "Exemple :" : "Contoh:";
 	const backLabel = language === "FR" ? "Retour" : "Kembali";
 	const loadingText = language === "FR" ? "Chargement..." : "Memuat data...";
@@ -90,93 +93,150 @@ export default function CategoryDetailScreen() {
 		language === "FR" ? "Données non trouvées." : "Data tidak ditemukan.";
 
 	return (
-		<SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-			<View style={styles.header}>
-				<Text style={styles.title}>{headerTitle}</Text>
-			</View>
-
-			<View style={styles.content}>
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.scrollContent}
-				>
-					{isLoading ? (
-						<View style={styles.loadingState}>
-							<ActivityIndicator size="large" color={colors.primary} />
-							<Text style={styles.notFoundText}>{loadingText}</Text>
-						</View>
-					) : entry ? (
-						<>
-							<Text style={styles.description}>{entry.desc}</Text>
-							{entry.example ? (
-								<View style={styles.exampleSection}>
-									<Text style={styles.exampleLabel}>{exampleLabel}</Text>
-									<Text style={styles.exampleText}>{entry.example}</Text>
-								</View>
-							) : null}
-						</>
-					) : (
-						<Text style={styles.notFoundText}>{notFoundText}</Text>
-					)}
-				</ScrollView>
-
-				<View style={styles.footer}>
-					<Button title={backLabel} onPress={() => router.back()} />
+		<View style={styles.container}>
+			<StatusBar barStyle="dark-content" backgroundColor={colors.tertiary} />
+			<SafeAreaView style={styles.safeArea} edges={["top"]}>
+				<View style={styles.header}>
+					<TouchableOpacity
+						onPress={() => router.back()}
+						hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+						style={styles.backButton}
+					>
+						<Ionicons name="arrow-back" size={26} color={colors.primaryDark} />
+					</TouchableOpacity>
 				</View>
-			</View>
-		</SafeAreaView>
+
+				<View style={styles.content}>
+					<ScrollView
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={styles.scrollContent}
+					>
+						{isLoading ? (
+							<View style={styles.loadingState}>
+								<ActivityIndicator size="large" color={colors.primary} />
+								<Text style={styles.notFoundText}>{loadingText}</Text>
+							</View>
+						) : entry ? (
+							<View style={styles.detailCard}>
+								<Text style={styles.termTitle}>{termTitle}</Text>
+								<Text style={styles.description}>{entry.desc}</Text>
+								{entry.example ? (
+									<View style={styles.exampleSection}>
+										<Text style={styles.exampleLabel}>{exampleLabel}</Text>
+										<Text style={styles.exampleText}>{entry.example}</Text>
+									</View>
+								) : null}
+							</View>
+						) : (
+							<View style={styles.detailCard}>
+								<Text style={styles.termTitle}>{termTitle}</Text>
+								<Text style={styles.notFoundText}>{notFoundText}</Text>
+							</View>
+						)}
+					</ScrollView>
+				</View>
+
+				<TouchableOpacity
+					style={[styles.floatingHomeButton, { bottom: 20 + insets.bottom }]}
+					onPress={() => router.push("/home")}
+					activeOpacity={0.8}
+				>
+					<Ionicons name="home" size={24} color={colors.white} />
+				</TouchableOpacity>
+			</SafeAreaView>
+		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.primary,
+		backgroundColor: colors.white,
+	},
+	safeArea: {
+		flex: 1,
 	},
 	header: {
 		paddingTop: spacing.lg,
-		paddingBottom: spacing.lg,
-		paddingHorizontal: spacing.xxl,
+		paddingBottom: spacing.sm,
+		paddingHorizontal: spacing.xl,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
+		zIndex: 10,
 	},
-	title: {
+	backButton: {
+		width: 42,
+		height: 42,
+		borderRadius: 14,
+		backgroundColor: colors.white,
+		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.08,
+		shadowRadius: 6,
+		elevation: 2,
+		borderWidth: 1,
+		borderColor: colors.lightGray,
+	},
+	termTitle: {
 		fontSize: size.title,
-		fontWeight: "700",
-		color: colors.white,
-		flex: 1,
-		paddingRight: spacing.lg,
+		fontWeight: "800",
+		color: colors.black,
+		marginBottom: spacing.md,
+		lineHeight: 28,
 	},
 	content: {
 		flex: 1,
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 28,
-		borderTopRightRadius: 28,
+		backgroundColor: colors.tertiary,
 		paddingHorizontal: spacing.xl,
-		paddingTop: spacing.xxl,
+		paddingTop: spacing.xs,
 	},
 	scrollContent: {
+		paddingTop: spacing.md,
 		paddingBottom: spacing.lg,
+	},
+	detailCard: {
+		backgroundColor: colors.white,
+		borderRadius: 20,
+		padding: spacing.xl,
+		borderWidth: 1,
+		borderColor: colors.lightGray,
+		shadowColor: colors.primaryDark,
+		shadowOffset: { width: 0, height: 6 },
+		shadowOpacity: 0.04,
+		shadowRadius: 12,
+		elevation: 2,
+		marginBottom: spacing.md,
 	},
 	description: {
 		fontSize: size.medium,
 		color: colors.black,
-		lineHeight: 20,
+		lineHeight: 24,
+		fontWeight: "500",
 	},
 	exampleSection: {
-		marginTop: spacing.lg,
+		marginTop: spacing.xl,
+		backgroundColor: colors.secondary,
+		borderRadius: 16,
+		padding: spacing.lg,
+		borderWidth: 1,
+		borderColor: colors.primaryLight,
 	},
 	exampleLabel: {
-		fontSize: size.medium,
-		fontWeight: "700",
-		color: colors.black,
-		marginBottom: spacing.sm,
+		fontSize: size.small,
+		fontWeight: "800",
+		color: colors.primaryDark,
+		marginBottom: 6,
+		letterSpacing: 0.5,
+		textTransform: "uppercase",
 	},
 	exampleText: {
-		fontSize: size.small,
+		fontSize: size.small + 1,
 		color: colors.gray,
-		lineHeight: 18,
+		lineHeight: 20,
+		fontWeight: "500",
 	},
 	notFoundText: {
 		fontSize: size.medium,
@@ -191,5 +251,21 @@ const styles = StyleSheet.create({
 	footer: {
 		paddingTop: spacing.lg,
 		paddingBottom: spacing.sm,
+	},
+	floatingHomeButton: {
+		position: "absolute",
+		right: 20,
+		width: 56,
+		height: 56,
+		borderRadius: 28,
+		backgroundColor: colors.primary,
+		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.2,
+		shadowRadius: 6,
+		elevation: 5,
+		zIndex: 999,
 	},
 });

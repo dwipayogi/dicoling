@@ -23,8 +23,9 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   text: {
-    fontSize: size.medium,
-    fontWeight: "bold",
-    color: colors.black,
+    fontSize: size.small + 1,
+    fontWeight: "600",
+    color: colors.gray,
+    letterSpacing: 0.1,
   },
 });
