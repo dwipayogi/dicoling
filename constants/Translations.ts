@@ -76,6 +76,16 @@ const translations = {
         },
       ],
     },
+    profil: {
+      titleText: "Profil",
+      nameLabel: "Nama",
+      emailLabel: "Email",
+      settingsTitle: "Pengaturan",
+      languageLabel: "Bahasa",
+      logoutText: "Keluar",
+      versionText: "Versi 1.1.0",
+      creditsText: "Dibuat oleh Tim Universitas Negeri Yogyakarta",
+    },
   },
   FR: {
     landing: {
@@ -151,6 +161,16 @@ const translations = {
           description: "étude de la langue dans son contexte textuel et social",
         },
       ],
+    },
+    profil: {
+      titleText: "Profil",
+      nameLabel: "Nom",
+      emailLabel: "E-mail",
+      settingsTitle: "Paramètres",
+      languageLabel: "Langue",
+      logoutText: "Se déconnecter",
+      versionText: "Version 1.1.0",
+      creditsText: "Réalisé par l'équipe Universitas Negeri Yogyakarta",
     },
   },
 } as const;

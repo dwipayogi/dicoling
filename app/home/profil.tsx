@@ -2,10 +2,11 @@ import Button from "@/components/button";
 import LanguageToggle from "@/components/language-toggle";
 import { colors } from "@/constants/Colors";
 import { size, spacing } from "@/constants/Sizes";
+import { t } from "@/constants/Translations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,23 +23,30 @@ function BackgroundOrnaments() {
 
 export default function ProfileScreen() {
 	const router = useRouter();
+	const navigation = useNavigation();
 	const { language } = useLanguage();
 	const { user, logout } = useAuth();
 	
 	const { width } = useWindowDimensions();
 	const isTablet = width >= 768;
 	const insets = useSafeAreaInsets();
-
-	const titleText = language === "FR" ? "Profil" : "Profil";
-	const nameLabel = language === "FR" ? "Nom" : "Nama";
-	const emailLabel = language === "FR" ? "E-mail" : "Email";
-	const settingsTitle = language === "FR" ? "Paramètres" : "Pengaturan";
-	const languageLabel = language === "FR" ? "Langue" : "Bahasa";
-	const logoutText = language === "FR" ? "Se déconnecter" : "Keluar";
+	const {
+		titleText,
+		nameLabel,
+		emailLabel,
+		settingsTitle,
+		languageLabel,
+		logoutText,
+		versionText,
+		creditsText,
+	} = t(language).profil;
 
 	const handleLogout = () => {
 		logout();
-		router.replace("/");
+		(navigation as any).reset({
+			index: 0,
+			routes: [{ name: "index" }],
+		});
 	};
 
 	return (
@@ -100,8 +108,8 @@ export default function ProfileScreen() {
 					<View style={styles.spacer} />
 
 					<View style={styles.footerInfo}>
-						<Text style={styles.versionText}>Versi 1.0.0</Text>
-						<Text style={styles.creditsText}>Dibuat oleh Tim Universitas Negeri Yogyakarta</Text>
+						<Text style={styles.versionText}>{versionText}</Text>
+						<Text style={styles.creditsText}>{creditsText}</Text>
 					</View>
 
 					<Button
@@ -292,5 +300,6 @@ const styles = StyleSheet.create({
 	logoutButton: {
 		backgroundColor: colors.danger,
 		shadowColor: colors.danger,
+		marginBottom: spacing.xxl,
 	},
 });
