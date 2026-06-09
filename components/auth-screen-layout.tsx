@@ -56,15 +56,17 @@ export function AuthScreenLayout({
   const isTablet = width >= 768;
   const formWidth = isTablet ? 480 : "100%";
 
+  const Container = isAndroid ? KeyboardAvoidingView : View;
+  const containerProps = isAndroid
+    ? { behavior: "height" as const, style: styles.flex }
+    : { style: styles.flex };
+
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <Container {...containerProps}>
       <ScrollView
         style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         contentContainerStyle={[styles.container, { paddingTop, paddingBottom }]}
       >
         <BackgroundOrnaments />
@@ -106,7 +108,7 @@ export function AuthScreenLayout({
           {footer ? <View style={styles.footer}>{footer}</View> : null}
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </Container>
   );
 }
 
