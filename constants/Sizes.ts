@@ -1,6 +1,7 @@
 import { RFValue } from "react-native-responsive-fontsize";
 
 export const size = {
+  ultraLarge: RFValue(36),
   extraLarge: RFValue(28),
   title: RFValue(20),
   large: RFValue(18),

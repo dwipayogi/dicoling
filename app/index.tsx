@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   logoBadge: {
-    width: 56,
-    height: 56,
+    width: size.ultraLarge,
+    height: size.ultraLarge,
     borderRadius: 16,
     backgroundColor: colors.white,
     alignItems: "center",
@@ -176,12 +176,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   unyLogo: {
-    width: 44,
-    height: 44,
+    width: size.extraLarge,
+    height: size.extraLarge,
   },
   appLogo: {
-    width: 34,
-    height: 34,
+    width: size.extraLarge,
+    height: size.extraLarge,
   },
   languageToggle: {
     marginTop: 0,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   appTitle: {
-    fontSize: 42,
+    fontSize: size.extraLarge,
     fontWeight: "800",
     color: colors.white,
     letterSpacing: 1,
@@ -207,8 +207,8 @@ const styles = StyleSheet.create({
   },
   imageSection: {
     flex: 1,
-    marginVertical: spacing.xl,
-    paddingHorizontal: spacing.xl,
+    marginVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -246,11 +246,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: "25%",
   },
   descriptionText: {
-    fontSize: size.medium,
+    fontSize: size.small,
     color: colors.white,
-    lineHeight: 24,
     textAlign: "left",
-    marginBottom: spacing.xl,
+    marginBottom: spacing.sm,
     opacity: 0.9,
   },
   actionContainer: {
