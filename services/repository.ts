@@ -112,9 +112,15 @@ async function getAppDb(): Promise<SQLite.SQLiteDatabase> {
 					password       TEXT    NOT NULL,
 					created_at     TEXT    DEFAULT (datetime('now')),
 					last_active_at TEXT    DEFAULT (datetime('now')),
-					synced         INTEGER DEFAULT 0
+					synced         INTEGER DEFAULT 0,
+					profile_image_uri TEXT
 				);
 			`);
+			try {
+				await db.execAsync("ALTER TABLE users ADD COLUMN profile_image_uri TEXT;");
+			} catch (e) {
+				// Ignore error if column already exists
+			}
 			return db;
 		})();
 	}
@@ -336,6 +342,7 @@ export type UserRow = {
 	created_at: string;
 	last_active_at: string;
 	synced: number;
+	profile_image_uri: string | null;
 };
 
 /* ------------------------------ getUserByEmail ----------------------------- */
@@ -428,4 +435,17 @@ export async function getUnsyncedUsers(): Promise<UserRow[]> {
 export async function markUserSynced(id: number): Promise<void> {
 	const db = await getAppDb();
 	await db.runAsync("UPDATE users SET synced = 1 WHERE id = ?", [id]);
+}
+
+/* ------------------------ updateUserProfileImage ------------------------- */
+/** Update path foto profil user lokal. */
+export async function updateUserProfileImage(
+	email: string,
+	uri: string | null,
+): Promise<void> {
+	const db = await getAppDb();
+	await db.runAsync("UPDATE users SET profile_image_uri = ? WHERE email = ?", [
+		uri,
+		email,
+	]);
 }

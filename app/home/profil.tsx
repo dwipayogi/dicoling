@@ -7,9 +7,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system/legacy";
 
 // Abstract/geometric ornaments for background
 function BackgroundOrnaments() {
@@ -25,7 +27,7 @@ export default function ProfileScreen() {
 	const router = useRouter();
 	const navigation = useNavigation();
 	const { language } = useLanguage();
-	const { user, logout } = useAuth();
+	const { user, logout, updateProfileImage } = useAuth();
 	
 	const { width } = useWindowDimensions();
 	const isTablet = width >= 768;
@@ -39,7 +41,129 @@ export default function ProfileScreen() {
 		logoutText,
 		versionText,
 		creditsText,
+		uploadTitle,
+		uploadDesc,
+		cameraOption,
+		galleryOption,
+		deleteOption,
+		cancelOption,
+		cameraPermissionTitle,
+		cameraPermissionMessage,
 	} = t(language).profil;
+
+	const handleRemoveImage = async () => {
+		try {
+			if (!user) return;
+			if (user.profileImageUri) {
+				await FileSystem.deleteAsync(user.profileImageUri, { idempotent: true });
+			}
+			await updateProfileImage(null);
+		} catch (error) {
+			console.error("Error removing image:", error);
+			Alert.alert("Error", language === "ID" ? "Gagal menghapus foto." : "Échec de la suppression de la photo.");
+		}
+	};
+
+	const saveImageLocally = async (uri: string) => {
+		try {
+			if (!user) return;
+			
+			if (user.profileImageUri) {
+				try {
+					await FileSystem.deleteAsync(user.profileImageUri, { idempotent: true });
+				} catch (err) {
+					console.warn("Failed to delete old image file:", err);
+				}
+			}
+
+			const filename = `profile_${user.id}_${Date.now()}.jpg`;
+			const destUri = `${FileSystem.documentDirectory}${filename}`;
+
+			await FileSystem.copyAsync({
+				from: uri,
+				to: destUri,
+			});
+
+			await updateProfileImage(destUri);
+		} catch (error) {
+			console.error("Error saving image locally:", error);
+			Alert.alert("Error", language === "ID" ? "Gagal menyimpan foto secara lokal." : "Échec de l'enregistrement local de la photo.");
+		}
+	};
+
+	const handleLaunchCamera = async () => {
+		try {
+			const { status } = await ImagePicker.requestCameraPermissionsAsync();
+			if (status !== "granted") {
+				Alert.alert(cameraPermissionTitle, cameraPermissionMessage);
+				return;
+			}
+
+			const result = await ImagePicker.launchCameraAsync({
+				mediaTypes: ["images"],
+				allowsEditing: true,
+				aspect: [1, 1],
+				quality: 0.8,
+			});
+
+			if (!result.canceled && result.assets?.[0]?.uri) {
+				await saveImageLocally(result.assets[0].uri);
+			}
+		} catch (error) {
+			console.error("Error launching camera:", error);
+			Alert.alert("Error", language === "ID" ? "Gagal mengambil foto." : "Échec de la prise de photo.");
+		}
+	};
+
+	const handleLaunchGallery = async () => {
+		try {
+			const result = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ["images"],
+				allowsEditing: true,
+				aspect: [1, 1],
+				quality: 0.8,
+			});
+
+			if (!result.canceled && result.assets?.[0]?.uri) {
+				await saveImageLocally(result.assets[0].uri);
+			}
+		} catch (error) {
+			console.error("Error launching image library:", error);
+			Alert.alert("Error", language === "ID" ? "Gagal memilih foto." : "Échec du choix de la photo.");
+		}
+	};
+
+	const handleSelectImage = async () => {
+		const options = [
+			cameraOption,
+			galleryOption,
+			...(user?.profileImageUri ? [deleteOption] : []),
+			cancelOption,
+		];
+
+		Alert.alert(
+			uploadTitle,
+			uploadDesc,
+			options.map((option) => {
+				const isCancel = option === cancelOption;
+				const isDelete = option === deleteOption;
+				return {
+					text: option,
+					style: isCancel ? "cancel" : isDelete ? "destructive" : "default",
+					onPress: async () => {
+						if (isCancel) return;
+						if (isDelete) {
+							await handleRemoveImage();
+						} else if (option === cameraOption) {
+							await handleLaunchCamera();
+						} else if (option === galleryOption) {
+							await handleLaunchGallery();
+						}
+					},
+				};
+			})
+		);
+	};
 
 	const handleLogout = () => {
 		logout();
@@ -79,9 +203,19 @@ export default function ProfileScreen() {
 					showsVerticalScrollIndicator={false}
 				>
 					<View style={styles.card}>
-						<View style={styles.avatarContainer}>
-							<Ionicons name="person" size={40} color={colors.primaryDark} />
-						</View>
+						<TouchableOpacity onPress={handleSelectImage} style={styles.avatarContainer} activeOpacity={0.8}>
+							{user?.profileImageUri ? (
+								<Image
+									source={{ uri: user.profileImageUri }}
+									style={styles.avatarImage}
+								/>
+							) : (
+								<Ionicons name="person" size={40} color={colors.primaryDark} />
+							)}
+							<View style={styles.editIconContainer}>
+								<Ionicons name="camera" size={14} color={colors.white} />
+							</View>
+						</TouchableOpacity>
 						<View style={styles.infoContainer}>
 							<Text style={styles.infoLabel}>{nameLabel}</Text>
 							<Text style={styles.infoValue}>{user?.name || "-"}</Text>
@@ -231,6 +365,30 @@ const styles = StyleSheet.create({
 		marginBottom: spacing.lg,
 		borderWidth: 1,
 		borderColor: colors.primaryLight,
+		position: "relative",
+	},
+	avatarImage: {
+		width: "100%",
+		height: "100%",
+		borderRadius: 40,
+	},
+	editIconContainer: {
+		position: "absolute",
+		bottom: 0,
+		right: 0,
+		backgroundColor: colors.primary,
+		width: 26,
+		height: 26,
+		borderRadius: 13,
+		alignItems: "center",
+		justifyContent: "center",
+		borderWidth: 2,
+		borderColor: colors.white,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.15,
+		shadowRadius: 3,
+		elevation: 3,
 	},
 	infoContainer: {
 		width: "100%",

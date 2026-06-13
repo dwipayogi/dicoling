@@ -15,6 +15,7 @@ import {
   type AuthResult,
   login as authLogin,
   register as authRegister,
+  updateProfileImage as authUpdateProfileImage,
 } from "@/services/auth";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -30,6 +31,7 @@ interface AuthContextType {
     password: string,
   ) => Promise<AuthResult>;
   logout: () => void;
+  updateProfileImage: (uri: string | null) => Promise<void>;
 }
 
 const STORAGE_KEY = "@dicoling_user_email";
@@ -43,6 +45,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => ({ success: false }),
   register: async () => ({ success: false }),
   logout: () => {},
+  updateProfileImage: async () => {},
 });
 
 // ── Provider ───────────────────────────────────────────────────────────
@@ -112,6 +115,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.removeItem(STORAGE_KEY);
   }, []);
 
+  const updateProfileImage = useCallback(
+    async (uri: string | null) => {
+      if (user?.email) {
+        await authUpdateProfileImage(user.email, uri);
+        setUser((prev) => (prev ? { ...prev, profileImageUri: uri } : null));
+      }
+    },
+    [user?.email],
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -120,8 +133,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      updateProfileImage,
     }),
-    [user, isLoading, login, register, logout],
+    [user, isLoading, login, register, logout, updateProfileImage],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

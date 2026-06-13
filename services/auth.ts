@@ -19,6 +19,7 @@ export interface User {
   name: string;
   email: string;
   lastActiveAt: string;
+  profileImageUri?: string | null;
 }
 
 export interface FieldErrors {
@@ -85,7 +86,16 @@ function rowToUser(row: UserRow): User {
     name: row.name,
     email: row.email,
     lastActiveAt: row.last_active_at,
+    profileImageUri: row.profile_image_uri,
   };
+}
+
+export async function updateProfileImage(
+  email: string,
+  uri: string | null,
+): Promise<void> {
+  const { updateUserProfileImage } = await import("@/services/repository");
+  await updateUserProfileImage(email, uri);
 }
 
 // ── Register ───────────────────────────────────────────────────────────
