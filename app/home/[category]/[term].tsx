@@ -1,15 +1,17 @@
-import Button from "@/components/button";
 import { colors } from "@/constants/Colors";
 import { resolveCategoryFromSlug } from "@/constants/Data";
 import { size, spacing } from "@/constants/Sizes";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getEntryDetailByTerm, type EntryDetail } from "@/services/repository";
+import { getEntryDetailByTerm, getEntriesByCategoryAndLang, type EntryDetail, type EntryListItem } from "@/services/repository";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from "react-native-reanimated";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
 
 export default function CategoryDetailScreen() {
 	const router = useRouter();
@@ -43,6 +45,82 @@ export default function CategoryDetailScreen() {
 
 	const [entry, setEntry] = useState<EntryDetail | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [siblingEntries, setSiblingEntries] = useState<EntryListItem[]>([]);
+	const [isCopied, setIsCopied] = useState(false);
+	const [isZoomed, setIsZoomed] = useState(false);
+
+	const scale = useSharedValue(1);
+	const translationX = useSharedValue(0);
+	const translationY = useSharedValue(0);
+	const savedTranslationX = useSharedValue(0);
+	const savedTranslationY = useSharedValue(0);
+
+	const doubleTapGesture = Gesture.Tap()
+		.numberOfTaps(2)
+		.onStart(() => {
+			if (scale.value > 1) {
+				scale.value = withTiming(1);
+				translationX.value = withTiming(0);
+				translationY.value = withTiming(0);
+				savedTranslationX.value = 0;
+				savedTranslationY.value = 0;
+				runOnJS(setIsZoomed)(false);
+			} else {
+				scale.value = withTiming(2.2);
+				runOnJS(setIsZoomed)(true);
+			}
+		});
+
+	const pinchGesture = Gesture.Pinch()
+		.onUpdate((event) => {
+			scale.value = Math.max(1, Math.min(event.scale, 4));
+		})
+		.onEnd(() => {
+			if (scale.value < 1.1) {
+				scale.value = withTiming(1);
+				translationX.value = withTiming(0);
+				translationY.value = withTiming(0);
+				savedTranslationX.value = 0;
+				savedTranslationY.value = 0;
+				runOnJS(setIsZoomed)(false);
+			} else {
+				runOnJS(setIsZoomed)(true);
+			}
+		});
+
+	const panGesture = Gesture.Pan()
+		.onUpdate((event) => {
+			if (scale.value > 1) {
+				translationX.value = savedTranslationX.value + event.translationX;
+				translationY.value = savedTranslationY.value + event.translationY;
+			}
+		})
+		.onEnd(() => {
+			if (scale.value <= 1) {
+				translationX.value = withTiming(0);
+				translationY.value = withTiming(0);
+				savedTranslationX.value = 0;
+				savedTranslationY.value = 0;
+			} else {
+				savedTranslationX.value = translationX.value;
+				savedTranslationY.value = translationY.value;
+			}
+		});
+
+	const animatedStyle = useAnimatedStyle(() => {
+		return {
+			transform: [
+				{ scale: scale.value },
+				{ translateX: translationX.value },
+				{ translateY: translationY.value },
+			],
+		};
+	});
+
+	const gesture = Gesture.Simultaneous(
+		pinchGesture,
+		Gesture.Simultaneous(panGesture, doubleTapGesture)
+	);
 
 	useEffect(() => {
 		let isActive = true;
@@ -87,10 +165,79 @@ export default function CategoryDetailScreen() {
 
 	const termTitle = entry?.name ?? resolvedCategory.title;
 	const exampleLabel = language === "FR" ? "Exemple :" : "Contoh:";
-	const backLabel = language === "FR" ? "Retour" : "Kembali";
+	const analysisLabel = language === "FR" ? "Analyse :" : "Analisis:";
 	const loadingText = language === "FR" ? "Chargement..." : "Memuat data...";
 	const notFoundText =
 		language === "FR" ? "Données non trouvées." : "Data tidak ditemukan.";
+
+	useEffect(() => {
+		let isActive = true;
+		const loadSiblings = async () => {
+			if (!resolvedCategory.key) return;
+			try {
+				const siblings = await getEntriesByCategoryAndLang(resolvedCategory.key, language);
+				if (isActive) {
+					setSiblingEntries(siblings);
+				}
+			} catch (err) {
+				console.error("Error loading sibling entries:", err);
+			}
+		};
+		loadSiblings();
+		return () => {
+			isActive = false;
+		};
+	}, [resolvedCategory.key, language]);
+
+	const currentIndex = useMemo(() => {
+		if (!termValue || siblingEntries.length === 0) return -1;
+		return siblingEntries.findIndex(
+			(item) => item.name_norm === termValue.toLowerCase()
+		);
+	}, [termValue, siblingEntries]);
+
+	const prevEntry = useMemo(() => {
+		if (currentIndex > 0) {
+			return siblingEntries[currentIndex - 1];
+		}
+		return null;
+	}, [currentIndex, siblingEntries]);
+
+	const nextEntry = useMemo(() => {
+		if (currentIndex !== -1 && currentIndex < siblingEntries.length - 1) {
+			return siblingEntries[currentIndex + 1];
+		}
+		return null;
+	}, [currentIndex, siblingEntries]);
+
+	const handleNavigate = (targetTermNorm: string) => {
+		router.replace({
+			pathname: "/home/[category]/[term]",
+			params: { category: categoryValue, term: targetTermNorm },
+		});
+	};
+
+	const handleCopyAll = async () => {
+		if (!entry) return;
+
+		let textToCopy = `${termTitle}\n\n`;
+		textToCopy += `${language === "FR" ? "Définition" : "Definisi"}: ${entry.desc}\n`;
+
+		if (entry.example) {
+			textToCopy += `\n${language === "FR" ? "Exemple" : "Contoh"}: ${entry.example}\n`;
+		}
+
+		if (entry.analysis) {
+			textToCopy += `\n${language === "FR" ? "Analyse" : "Analisis"}: ${entry.analysis}\n`;
+		}
+
+		await Clipboard.setStringAsync(textToCopy);
+		setIsCopied(true);
+
+		setTimeout(() => {
+			setIsCopied(false);
+		}, 2000);
+	};
 
 	return (
 		<View style={styles.container}>
@@ -100,16 +247,34 @@ export default function CategoryDetailScreen() {
 					<TouchableOpacity
 						onPress={() => router.back()}
 						hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-						style={styles.backButton}
+						style={styles.headerButton}
 					>
 						<Ionicons name="arrow-back" size={26} color={colors.primaryDark} />
 					</TouchableOpacity>
+
+					{entry && (
+						<TouchableOpacity
+							onPress={handleCopyAll}
+							hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+							style={[styles.headerButton, isCopied && styles.copyButtonActive]}
+						>
+							<Ionicons
+								name={isCopied ? "checkmark" : "copy-outline"}
+								size={22}
+								color={isCopied ? colors.accent : colors.primaryDark}
+							/>
+						</TouchableOpacity>
+					)}
 				</View>
 
 				<View style={styles.content}>
 					<ScrollView
+						scrollEnabled={!isZoomed}
 						showsVerticalScrollIndicator={false}
-						contentContainerStyle={styles.scrollContent}
+						contentContainerStyle={[
+							styles.scrollContent,
+							{ paddingBottom: 100 + insets.bottom },
+						]}
 					>
 						{isLoading ? (
 							<View style={styles.loadingState}>
@@ -117,16 +282,25 @@ export default function CategoryDetailScreen() {
 								<Text style={styles.notFoundText}>{loadingText}</Text>
 							</View>
 						) : entry ? (
-							<View style={styles.detailCard}>
-								<Text style={styles.termTitle}>{termTitle}</Text>
-								<Text style={styles.description}>{entry.desc}</Text>
-								{entry.example ? (
-									<View style={styles.exampleSection}>
-										<Text style={styles.exampleLabel}>{exampleLabel}</Text>
-										<Text style={styles.exampleText}>{entry.example}</Text>
-									</View>
-								) : null}
-							</View>
+							<GestureDetector gesture={gesture}>
+								<Animated.View style={[styles.detailCard, animatedStyle]}>
+									<Text selectable style={styles.termTitle}>{termTitle}</Text>
+									<Text selectable style={styles.description}>{entry.desc}</Text>
+									{entry.example ? (
+										<View style={styles.exampleSection}>
+											<Text style={styles.exampleLabel}>{exampleLabel}</Text>
+											<Text selectable style={styles.exampleText}>{entry.example}</Text>
+										</View>
+									) : null}
+
+									{entry.analysis ? (
+										<View style={styles.analysisSection}>
+											<Text style={styles.analysisLabel}>{analysisLabel}</Text>
+											<Text selectable style={styles.analysisText}>{entry.analysis}</Text>
+										</View>
+									) : null}
+								</Animated.View>
+							</GestureDetector>
 						) : (
 							<View style={styles.detailCard}>
 								<Text style={styles.termTitle}>{termTitle}</Text>
@@ -136,13 +310,33 @@ export default function CategoryDetailScreen() {
 					</ScrollView>
 				</View>
 
-				<TouchableOpacity
-					style={[styles.floatingHomeButton, { bottom: 20 + insets.bottom }]}
-					onPress={() => router.push("/home")}
-					activeOpacity={0.8}
-				>
-					<Ionicons name="home" size={24} color={colors.white} />
-				</TouchableOpacity>
+				<View style={[styles.bottomBar, { bottom: Math.max(insets.bottom, 16) }]}>
+					<TouchableOpacity
+						style={[styles.navButton, { opacity: prevEntry ? 1 : 0.3 }]}
+						onPress={() => prevEntry && handleNavigate(prevEntry.name_norm)}
+						disabled={!prevEntry}
+						activeOpacity={0.7}
+					>
+						<Ionicons name="chevron-back" size={28} color={colors.primary} />
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						style={styles.homeButton}
+						onPress={() => router.push("/home")}
+						activeOpacity={0.7}
+					>
+						<Ionicons name="home" size={22} color={colors.white} />
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						style={[styles.navButton, { opacity: nextEntry ? 1 : 0.3 }]}
+						onPress={() => nextEntry && handleNavigate(nextEntry.name_norm)}
+						disabled={!nextEntry}
+						activeOpacity={0.7}
+					>
+						<Ionicons name="chevron-forward" size={28} color={colors.primary} />
+					</TouchableOpacity>
+				</View>
 			</SafeAreaView>
 		</View>
 	);
@@ -165,7 +359,7 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		zIndex: 10,
 	},
-	backButton: {
+	headerButton: {
 		width: 42,
 		height: 42,
 		borderRadius: 14,
@@ -179,6 +373,10 @@ const styles = StyleSheet.create({
 		elevation: 2,
 		borderWidth: 1,
 		borderColor: colors.lightGray,
+	},
+	copyButtonActive: {
+		borderColor: colors.accent,
+		backgroundColor: colors.accentLight,
 	},
 	termTitle: {
 		fontSize: size.title,
@@ -238,6 +436,28 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 		fontWeight: "500",
 	},
+	analysisSection: {
+		marginTop: spacing.md,
+		backgroundColor: colors.accentLight,
+		borderRadius: 16,
+		padding: spacing.lg,
+		borderWidth: 1,
+		borderColor: colors.accent,
+	},
+	analysisLabel: {
+		fontSize: size.small,
+		fontWeight: "800",
+		color: colors.accent,
+		marginBottom: 6,
+		letterSpacing: 0.5,
+		textTransform: "uppercase",
+	},
+	analysisText: {
+		fontSize: size.small + 1,
+		color: colors.black,
+		lineHeight: 20,
+		fontWeight: "500",
+	},
 	notFoundText: {
 		fontSize: size.medium,
 		color: colors.gray,
@@ -252,20 +472,44 @@ const styles = StyleSheet.create({
 		paddingTop: spacing.lg,
 		paddingBottom: spacing.sm,
 	},
-	floatingHomeButton: {
+	bottomBar: {
 		position: "absolute",
-		right: 20,
-		width: 56,
-		height: 56,
-		borderRadius: 28,
+		alignSelf: "center",
+		width: 220,
+		height: 64,
+		backgroundColor: colors.white,
+		borderRadius: 32,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		paddingHorizontal: spacing.md,
+		borderWidth: 1,
+		borderColor: colors.lightGray,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 8 },
+		shadowOpacity: 0.1,
+		shadowRadius: 12,
+		elevation: 5,
+		zIndex: 100,
+	},
+	navButton: {
+		width: 48,
+		height: 48,
+		borderRadius: 24,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	homeButton: {
+		width: 48,
+		height: 48,
+		borderRadius: 24,
 		backgroundColor: colors.primary,
 		alignItems: "center",
 		justifyContent: "center",
-		shadowColor: "#000",
+		shadowColor: colors.primary,
 		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.2,
+		shadowOpacity: 0.3,
 		shadowRadius: 6,
-		elevation: 5,
-		zIndex: 999,
+		elevation: 3,
 	},
 });

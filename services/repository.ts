@@ -31,6 +31,7 @@ export type EntryListItem = {
 
 export type EntryDetail = EntryListItem & {
 	example: string;
+	analysis: string | null;
 };
 
 export type SearchResultItem = EntryListItem & {
@@ -148,26 +149,16 @@ function buildExample(row: EntryRow) {
 
 	const sourceText = sourceParts.join(", ");
 	const quoteText = row.ex_quote ? `"${row.ex_quote}"` : "";
-	const analysisLabel = row.lang === "fr" ? "Analyse" : "Analisis";
-	const analysisText = row.ex_analysis
-		? `${analysisLabel}: ${row.ex_analysis}`
-		: "";
 
 	if (sourceText && quoteText) {
-		return analysisText
-			? `${sourceText}: ${quoteText} -> ${analysisText}`
-			: `${sourceText}: ${quoteText}`;
+		return `${sourceText}: ${quoteText}`;
 	}
 
 	if (quoteText) {
-		return analysisText ? `${quoteText} -> ${analysisText}` : quoteText;
+		return quoteText;
 	}
 
-	if (sourceText) {
-		return analysisText ? `${sourceText} -> ${analysisText}` : sourceText;
-	}
-
-	return analysisText;
+	return sourceText;
 }
 
 function mapRowToListItem(row: EntryRow): EntryListItem {
@@ -183,6 +174,7 @@ function mapRowToDetail(row: EntryRow): EntryDetail {
 	return {
 		...mapRowToListItem(row),
 		example: buildExample(row),
+		analysis: row.ex_analysis || null,
 	};
 }
 

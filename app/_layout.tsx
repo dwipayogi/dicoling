@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { ActivityIndicator, View } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -24,53 +25,55 @@ function LoadingFallback() {
 
 export default function RootLayout() {
 	return (
-		<SafeAreaProvider>
-			<Suspense fallback={<LoadingFallback />}>
-				<SQLiteProvider
-					databaseName="kamus.db"
-					assetSource={{
-						assetId: require("@/assets/db/kamus.db"),
-						forceOverwrite: true,
-					}}
-					onInit={initKamusDb}
-					useSuspense
-				>
-					<LanguageProvider>
-						<AuthProvider>
-							<Stack>
-								<Stack.Screen
-									name="index"
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name="auth/masuk"
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name="auth/daftar"
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name="home/index"
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name="home/[category]/index"
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name="home/[category]/[term]"
-									options={{ headerShown: false }}
-								/>
-								<Stack.Screen
-									name="home/profil"
-									options={{ headerShown: false, presentation: "modal" }}
-								/>
-							</Stack>
-						</AuthProvider>
-					</LanguageProvider>
-				</SQLiteProvider>
-			</Suspense>
-		</SafeAreaProvider>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<SafeAreaProvider>
+				<Suspense fallback={<LoadingFallback />}>
+					<SQLiteProvider
+						databaseName="kamus.db"
+						assetSource={{
+							assetId: require("@/assets/db/kamus.db"),
+							forceOverwrite: true,
+						}}
+						onInit={initKamusDb}
+						useSuspense
+					>
+						<LanguageProvider>
+							<AuthProvider>
+								<Stack>
+									<Stack.Screen
+										name="index"
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name="auth/masuk"
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name="auth/daftar"
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name="home/index"
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name="home/[category]/index"
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name="home/[category]/[term]"
+										options={{ headerShown: false }}
+									/>
+									<Stack.Screen
+										name="home/profil"
+										options={{ headerShown: false, presentation: "modal" }}
+									/>
+								</Stack>
+							</AuthProvider>
+						</LanguageProvider>
+					</SQLiteProvider>
+				</Suspense>
+			</SafeAreaProvider>
+		</GestureHandlerRootView>
 	);
 }
