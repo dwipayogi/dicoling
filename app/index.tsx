@@ -5,12 +5,14 @@ import { images } from "@/constants/Images";
 import { size, spacing } from "@/constants/Sizes";
 import { t } from "@/constants/Translations";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
+import { useEffect } from "react";
 
 function GabunganOrnaments() {
   return (
@@ -25,9 +27,16 @@ function GabunganOrnaments() {
 export default function Index() {
   const router = useRouter();
   const { language } = useLanguage();
+  const { user, isLoading } = useAuth();
   const texts = t(language).landing;
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/home");
+    }
+  }, [user, isLoading]);
 
   return (
     <LinearGradient
@@ -95,6 +104,7 @@ export default function Index() {
                 onPress={() => router.replace("/auth/masuk")}
               />
               <Text style={styles.footerText}>{texts.footer}</Text>
+              <Text style={styles.footer2Text}>Rohali, Sri Rejeki Urip, Maydita, Desi, Sandi</Text>
             </View>
           </Animated.View>
         </View>
@@ -265,6 +275,12 @@ const styles = StyleSheet.create({
     color: colors.tertiary,
     textAlign: "center",
     marginTop: spacing.md,
+    opacity: 0.8,
+  },
+  footer2Text: {
+    fontSize: size.extraSmall - 1,
+    color: colors.tertiary,
+    textAlign: "center",
     opacity: 0.8,
   },
 });

@@ -16,6 +16,7 @@ const translations = {
       loginButton: "Masuk",
       noAccount: "Belum punya akun? ",
       registerLink: "Daftar",
+      rememberMeLabel: "Ingat Saya",
     },
     daftar: {
       nameLabel: "Nama",
@@ -118,6 +119,7 @@ const translations = {
       loginButton: "Se connecter",
       noAccount: "Pas encore de compte ? ",
       registerLink: "S'inscrire",
+      rememberMeLabel: "Se souvenir de moi",
     },
     daftar: {
       nameLabel: "Nom",

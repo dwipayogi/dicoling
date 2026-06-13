@@ -367,3 +367,20 @@ export async function updateProfile(
   };
 }
 
+/** Get user saved locally with 'save' state. */
+export async function getSavedUser(): Promise<User | null> {
+  const { getUserBySaveState } = await import("@/services/repository");
+  const row = await getUserBySaveState();
+  return row ? rowToUser(row) : null;
+}
+
+/** Update user 'save' state in the local SQLite db. */
+export async function updateUserSaveState(
+  email: string,
+  saveState: string | null,
+): Promise<void> {
+  const { updateUserSaveState: repoUpdate } = await import("@/services/repository");
+  await repoUpdate(email, saveState);
+}
+
+

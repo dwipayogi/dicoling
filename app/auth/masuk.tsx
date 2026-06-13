@@ -10,20 +10,31 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { FieldErrors } from "@/services/auth";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "@/constants/Colors";
+import { size, spacing } from "@/constants/Sizes";
 
 export default function Masuk() {
   const router = useRouter();
   const { language } = useLanguage();
-  const { login } = useAuth();
+  const { login, user, isLoading } = useAuth();
   const texts = t(language).masuk;
   const errorTexts = t(language).errors;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [generalError, setGeneralError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/home");
+    }
+  }, [user, isLoading]);
 
   function resolveError(key?: string): string | undefined {
     if (!key) return undefined;
@@ -33,10 +44,10 @@ export default function Masuk() {
   async function handleLogin() {
     setFieldErrors({});
     setGeneralError("");
-    setIsLoading(true);
+    setIsSubmitLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, rememberMe);
 
       if (result.fieldErrors) {
         setFieldErrors(result.fieldErrors);
@@ -56,7 +67,7 @@ export default function Masuk() {
     } catch {
       setGeneralError(errorTexts.unknownError);
     } finally {
-      setIsLoading(false);
+      setIsSubmitLoading(false);
     }
   }
 
@@ -64,7 +75,7 @@ export default function Masuk() {
     <AuthScreenLayout
       actionLabel={texts.loginButton}
       onAction={handleLogin}
-      isLoading={isLoading}
+      isLoading={isSubmitLoading}
       generalError={generalError}
       footer={
         <AuthFooterLink
@@ -104,6 +115,56 @@ export default function Masuk() {
           error={resolveError(fieldErrors.password)}
         />
       </AuthField>
+
+      <View style={styles.rememberMeContainer}>
+        <TouchableOpacity
+          onPress={() => setRememberMe((prev) => !prev)}
+          style={styles.checkboxWrapper}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+            {rememberMe && (
+              <Ionicons name="checkmark" size={14} color={colors.white} />
+            )}
+          </View>
+          <Text style={styles.rememberMeText}>{texts.rememberMeLabel}</Text>
+        </TouchableOpacity>
+      </View>
     </AuthScreenLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  rememberMeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    alignSelf: "flex-start",
+    paddingHorizontal: 2,
+  },
+  checkboxWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.gray,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.sm,
+    backgroundColor: colors.white,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  rememberMeText: {
+    fontSize: size.small - 2,
+    fontWeight: "600",
+    color: colors.gray,
+  },
+});

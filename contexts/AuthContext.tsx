@@ -25,13 +25,17 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<AuthResult>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean,
+  ) => Promise<AuthResult>;
   register: (
     name: string,
     email: string,
     password: string,
   ) => Promise<AuthResult>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfileImage: (uri: string | null) => Promise<void>;
   updateProfile: (
     name: string,
@@ -50,7 +54,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => ({ success: false }),
   register: async () => ({ success: false }),
-  logout: () => {},
+  logout: async () => {},
   updateProfileImage: async () => {},
   updateProfile: async () => ({ success: false }),
 });
@@ -68,7 +72,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const email = await AsyncStorage.getItem(STORAGE_KEY);
         if (email) {
           const stored = await getLocalUser(email);
-          if (stored) setUser(stored);
+          if (stored) {
+            setUser(stored);
+            return;
+          }
+        }
+
+        // If not found in AsyncStorage, check SQLite database for saved session
+        const { getSavedUser } = await import("@/services/auth");
+        const saved = await getSavedUser();
+        if (saved) {
+          setUser(saved);
+          await AsyncStorage.setItem(STORAGE_KEY, saved.email);
         }
       } catch (error) {
         console.warn("Failed to restore auth session:", error);
@@ -90,11 +105,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.email]);
 
   const login = useCallback(
-    async (email: string, password: string): Promise<AuthResult> => {
+    async (email: string, password: string, rememberMe: boolean = false): Promise<AuthResult> => {
       const result = await authLogin(email, password);
       if (result.success && result.user) {
         setUser(result.user);
         await AsyncStorage.setItem(STORAGE_KEY, result.user.email);
+
+        const { updateUserSaveState } = await import("@/services/auth");
+        await updateUserSaveState(result.user.email, rememberMe ? "save" : null);
       }
       return result;
     },
@@ -118,9 +136,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    if (user?.email) {
+      const { updateUserSaveState } = await import("@/services/auth");
+      await updateUserSaveState(user.email, null);
+    }
     setUser(null);
     await AsyncStorage.removeItem(STORAGE_KEY);
-  }, []);
+  }, [user?.email]);
 
   const updateProfileImage = useCallback(
     async (uri: string | null) => {

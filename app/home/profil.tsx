@@ -237,8 +237,8 @@ export default function ProfileScreen() {
 		);
 	};
 
-	const handleLogout = () => {
-		logout();
+	const handleLogout = async () => {
+		await logout();
 		(navigation as any).reset({
 			index: 0,
 			routes: [{ name: "index" }],
@@ -384,6 +384,7 @@ export default function ProfileScreen() {
 					<View style={styles.footerInfo}>
 						<Text style={styles.versionText}>{versionText}</Text>
 						<Text style={styles.creditsText}>{creditsText}</Text>
+						<Text style={styles.creditsText}>2026</Text>
 					</View>
 
 					<Button

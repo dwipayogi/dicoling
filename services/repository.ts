@@ -121,6 +121,11 @@ async function getAppDb(): Promise<SQLite.SQLiteDatabase> {
 			} catch (e) {
 				// Ignore error if column already exists
 			}
+			try {
+				await db.execAsync("ALTER TABLE users ADD COLUMN save TEXT;");
+			} catch (e) {
+				// Ignore error if column already exists
+			}
 			return db;
 		})();
 	}
@@ -470,5 +475,28 @@ export async function updateProfile(
 			[name, email, oldEmail]
 		);
 	}
+}
+
+/* ------------------------ updateUserSaveState ------------------------ */
+/** Update status 'save' pada user lokal. */
+export async function updateUserSaveState(
+	email: string,
+	saveState: string | null,
+): Promise<void> {
+	const db = await getAppDb();
+	if (saveState === "save") {
+		// Reset save state for all users first to ensure only one is remembered
+		await db.runAsync("UPDATE users SET save = NULL");
+		await db.runAsync("UPDATE users SET save = 'save' WHERE email = ?", [email]);
+	} else {
+		await db.runAsync("UPDATE users SET save = NULL WHERE email = ?", [email]);
+	}
+}
+
+/* ------------------------ getUserBySaveState ------------------------ */
+/** Ambil user yang memiliki status save = 'save'. */
+export async function getUserBySaveState(): Promise<UserRow | null> {
+	const db = await getAppDb();
+	return db.getFirstAsync<UserRow>("SELECT * FROM users WHERE save = 'save'");
 }
 
