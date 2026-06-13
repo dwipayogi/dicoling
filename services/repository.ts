@@ -449,3 +449,26 @@ export async function updateUserProfileImage(
 		email,
 	]);
 }
+
+/* ----------------------------- updateProfile ----------------------------- */
+/** Update nama, email, dan password user lokal. */
+export async function updateProfile(
+	oldEmail: string,
+	name: string,
+	email: string,
+	password?: string,
+): Promise<void> {
+	const db = await getAppDb();
+	if (password) {
+		await db.runAsync(
+			"UPDATE users SET name = ?, email = ?, password = ? WHERE email = ?",
+			[name, email, password, oldEmail]
+		);
+	} else {
+		await db.runAsync(
+			"UPDATE users SET name = ?, email = ? WHERE email = ?",
+			[name, email, oldEmail]
+		);
+	}
+}
+

@@ -325,3 +325,45 @@ export async function getLocalUser(email: string): Promise<User | null> {
   const row = await getUserByEmail(email);
   return row ? rowToUser(row) : null;
 }
+
+/** Update user name, email, and password locally. */
+export async function updateProfile(
+  oldEmail: string,
+  name: string,
+  email: string,
+  password?: string,
+): Promise<AuthResult> {
+  const errors: FieldErrors = {};
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim().toLowerCase();
+
+  if (!trimmedName) errors.name = "required";
+  if (!trimmedEmail) errors.email = "required";
+  else if (!EMAIL_REGEX.test(trimmedEmail)) errors.email = "invalidEmail";
+
+  if (password && password.length < 6) {
+    errors.password = "passwordTooShort";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { success: false, fieldErrors: errors };
+  }
+
+  // Check if new email is already taken by another user
+  if (trimmedEmail !== oldEmail.trim().toLowerCase()) {
+    const existing = await getUserByEmail(trimmedEmail);
+    if (existing) {
+      return { success: false, generalError: "emailTaken" };
+    }
+  }
+
+  const { updateProfile: repoUpdateProfile } = await import("@/services/repository");
+  await repoUpdateProfile(oldEmail, trimmedName, trimmedEmail, password);
+
+  const updatedUser = await getUserByEmail(trimmedEmail);
+  return {
+    success: true,
+    user: updatedUser ? rowToUser(updatedUser) : undefined,
+  };
+}
+

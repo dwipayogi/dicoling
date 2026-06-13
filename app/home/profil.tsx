@@ -12,6 +12,8 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
+import { useEffect, useState } from "react";
+import Input from "@/components/input";
 
 // Abstract/geometric ornaments for background
 function BackgroundOrnaments() {
@@ -27,8 +29,16 @@ export default function ProfileScreen() {
 	const router = useRouter();
 	const navigation = useNavigation();
 	const { language } = useLanguage();
-	const { user, logout, updateProfileImage } = useAuth();
+	const { user, logout, updateProfileImage, updateProfile } = useAuth();
 	
+	const [isEditing, setIsEditing] = useState(false);
+	const [editName, setEditName] = useState(user?.name || "");
+	const [editEmail, setEditEmail] = useState(user?.email || "");
+	const [editPassword, setEditPassword] = useState("");
+	const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+	const [generalError, setGeneralError] = useState("");
+	const [isSaving, setIsSaving] = useState(false);
+
 	const { width } = useWindowDimensions();
 	const isTablet = width >= 768;
 	const insets = useSafeAreaInsets();
@@ -49,7 +59,69 @@ export default function ProfileScreen() {
 		cancelOption,
 		cameraPermissionTitle,
 		cameraPermissionMessage,
+		editProfileTitle,
+		saveButton,
+		editButton,
+		cancelButton,
+		successUpdateMessage,
+		errorUpdateMessage,
+		passwordLabel,
+		passwordPlaceholder,
 	} = t(language).profil;
+
+	const errorTexts = t(language).errors;
+	const resolveError = (key?: string): string | undefined => {
+		if (!key) return undefined;
+		return errorTexts[key as keyof typeof errorTexts] ?? key;
+	};
+
+	useEffect(() => {
+		if (user) {
+			setEditName(user.name);
+			setEditEmail(user.email);
+		}
+	}, [user]);
+
+	const handleCancelEdit = () => {
+		if (user) {
+			setEditName(user.name);
+			setEditEmail(user.email);
+		}
+		setEditPassword("");
+		setFieldErrors({});
+		setGeneralError("");
+		setIsEditing(false);
+	};
+
+	const handleSaveEdit = async () => {
+		setFieldErrors({});
+		setGeneralError("");
+		setIsSaving(true);
+		try {
+			const result = await updateProfile(editName, editEmail, editPassword || undefined);
+			if (result.success) {
+				setEditPassword("");
+				setIsEditing(false);
+				Alert.alert(
+					language === "ID" ? "Sukses" : "Succès",
+					successUpdateMessage
+				);
+			} else {
+				if (result.fieldErrors) {
+					setFieldErrors(result.fieldErrors);
+				}
+				if (result.generalError) {
+					const errorText = errorTexts[result.generalError as keyof typeof errorTexts] || result.generalError;
+					setGeneralError(errorText);
+				}
+			}
+		} catch (error) {
+			console.error("Error updating profile:", error);
+			setGeneralError(errorUpdateMessage);
+		} finally {
+			setIsSaving(false);
+		}
+	};
 
 	const handleRemoveImage = async () => {
 		try {
@@ -216,15 +288,83 @@ export default function ProfileScreen() {
 								<Ionicons name="camera" size={14} color={colors.white} />
 							</View>
 						</TouchableOpacity>
-						<View style={styles.infoContainer}>
-							<Text style={styles.infoLabel}>{nameLabel}</Text>
-							<Text style={styles.infoValue}>{user?.name || "-"}</Text>
-							
-							<View style={styles.divider} />
-							
-							<Text style={styles.infoLabel}>{emailLabel}</Text>
-							<Text style={styles.infoValue}>{user?.email || "-"}</Text>
-						</View>
+						{isEditing ? (
+							<View style={styles.infoContainer}>
+								<Text style={[styles.infoLabel, { marginBottom: 8 }]}>{nameLabel}</Text>
+								<Input
+									placeholder={nameLabel}
+									value={editName}
+									onChangeText={setEditName}
+									autoCapitalize="words"
+									autoCorrect={false}
+									error={resolveError(fieldErrors.name)}
+								/>
+								
+								<View style={{ height: 12 }} />
+								
+								<Text style={[styles.infoLabel, { marginBottom: 8 }]}>{emailLabel}</Text>
+								<Input
+									placeholder={emailLabel}
+									value={editEmail}
+									onChangeText={setEditEmail}
+									keyboardType="email-address"
+									autoCapitalize="none"
+									autoCorrect={false}
+									error={resolveError(fieldErrors.email)}
+								/>
+
+								<View style={{ height: 12 }} />
+								
+								<Text style={[styles.infoLabel, { marginBottom: 8 }]}>{passwordLabel}</Text>
+								<Input
+									placeholder={passwordPlaceholder}
+									value={editPassword}
+									onChangeText={setEditPassword}
+									secureTextEntry
+									autoCapitalize="none"
+									autoCorrect={false}
+									error={resolveError(fieldErrors.password)}
+								/>
+
+								{generalError ? (
+									<Text style={styles.errorText}>{generalError}</Text>
+								) : null}
+								
+								<View style={styles.editButtonsContainer}>
+									<Button
+										title={cancelButton}
+										onPress={handleCancelEdit}
+										variant="light"
+										style={styles.halfButton}
+									/>
+									<View style={{ width: 12 }} />
+									<Button
+										title={saveButton}
+										onPress={handleSaveEdit}
+										loading={isSaving}
+										style={styles.halfButton}
+									/>
+								</View>
+							</View>
+						) : (
+							<View style={styles.infoContainer}>
+								<Text style={styles.infoLabel}>{nameLabel}</Text>
+								<Text style={styles.infoValue}>{user?.name || "-"}</Text>
+								
+								<View style={styles.divider} />
+								
+								<Text style={styles.infoLabel}>{emailLabel}</Text>
+								<Text style={styles.infoValue}>{user?.email || "-"}</Text>
+
+								<TouchableOpacity
+									style={styles.editProfileButton}
+									onPress={() => setIsEditing(true)}
+								>
+									<Ionicons name="create-outline" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+									<Text style={styles.editProfileButtonText}>{editButton}</Text>
+								</TouchableOpacity>
+							</View>
+						)}
 					</View>
 
 					<Text style={styles.sectionTitle}>{settingsTitle}</Text>
@@ -459,5 +599,37 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.danger,
 		shadowColor: colors.danger,
 		marginBottom: spacing.xxl,
+	},
+	editButtonsContainer: {
+		flexDirection: "row",
+		marginTop: spacing.lg,
+		width: "100%",
+	},
+	halfButton: {
+		flex: 1,
+		height: 44,
+	},
+	editProfileButton: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: spacing.lg,
+		paddingVertical: 10,
+		borderWidth: 1,
+		borderColor: colors.primary,
+		borderRadius: 12,
+		width: "100%",
+	},
+	editProfileButtonText: {
+		color: colors.primary,
+		fontSize: size.small + 1,
+		fontWeight: "700",
+	},
+	errorText: {
+		color: colors.danger,
+		fontSize: size.small,
+		marginTop: spacing.sm,
+		textAlign: "center",
+		fontWeight: "600",
 	},
 });
