@@ -126,11 +126,11 @@ function parseExempleFR(raw: string) {
   const empty = { ex_source: null, ex_date: null, ex_quote: null, ex_analysis: null };
   if (!raw) return empty;
 
-  // Pisahkan di ". Analyse :"
-  const splitIdx = raw.search(/\.\s*[Aa]nalyse\s*\s*:/);
-  const before   = splitIdx !== -1 ? raw.slice(0, splitIdx).trim() : raw.trim();
+  // Pisahkan di "Analyse :"
+  const splitIdx = raw.search(/[Aa]nalisis\s*:/);
+  const before   = splitIdx !== -1 ? raw.slice(0, splitIdx).trim().replace(/[.\s]+$/, '') : raw.trim();
   const ex_analysis = splitIdx !== -1
-    ? raw.slice(raw.indexOf(':', splitIdx + 1) + 1).trim()
+    ? raw.slice(raw.indexOf(':', splitIdx) + 1).trim()
     : null;
 
   // Ekstrak (Source, DD mois YYYY)

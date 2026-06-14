@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(awk '{print $5\"\\\\t\"$NF}')",
+      "Bash(echo \"=== exit:$? ===\")"
+    ]
+  }
+}
