@@ -94,8 +94,8 @@ function parseContohID(raw: string) {
   const empty = { ex_source: null, ex_date: null, ex_quote: null, ex_analysis: null };
   if (!raw) return empty;
 
-  // Pisahkan di ". Analisis:"
-  const splitIdx = raw.search(/\.\s*[Aa]nalisis\s*:/);
+  // Pisahkan di "Analisis:"
+  const splitIdx = raw.search(/[Aa]nalisis\s*:/);
   const before   = splitIdx !== -1 ? raw.slice(0, splitIdx).trim() : raw.trim();
   const ex_analysis = splitIdx !== -1
     ? raw.slice(raw.indexOf(':', splitIdx + 1) + 1).trim()
@@ -127,7 +127,7 @@ function parseExempleFR(raw: string) {
   if (!raw) return empty;
 
   // Pisahkan di "Analyse :"
-  const splitIdx = raw.search(/[Aa]nalisis\s*:/);
+  const splitIdx = raw.search(/[Aa]nalyse\s*:/);
   const before   = splitIdx !== -1 ? raw.slice(0, splitIdx).trim().replace(/[.\s]+$/, '') : raw.trim();
   const ex_analysis = splitIdx !== -1
     ? raw.slice(raw.indexOf(':', splitIdx) + 1).trim()
