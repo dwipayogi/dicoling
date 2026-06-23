@@ -5,13 +5,15 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getEntryDetailByTerm, getEntriesByCategoryAndLang, type EntryDetail, type EntryListItem } from "@/services/repository";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from "react-native-reanimated";
+import Animated, { useSharedValue, useAnimatedStyle, useAnimatedProps, useDerivedValue, withTiming } from "react-native-reanimated";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
+
+// Maximum pan boundary relative to content size at current scale
+const MAX_PAN_FACTOR = 150;
 
 export default function CategoryDetailScreen() {
 	const router = useRouter();
@@ -47,80 +49,113 @@ export default function CategoryDetailScreen() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [siblingEntries, setSiblingEntries] = useState<EntryListItem[]>([]);
 	const [isCopied, setIsCopied] = useState(false);
-	const [isZoomed, setIsZoomed] = useState(false);
 
 	const scale = useSharedValue(1);
+	const savedScale = useSharedValue(1);
 	const translationX = useSharedValue(0);
 	const translationY = useSharedValue(0);
 	const savedTranslationX = useSharedValue(0);
 	const savedTranslationY = useSharedValue(0);
 
-	const doubleTapGesture = Gesture.Tap()
-		.numberOfTaps(2)
-		.onStart(() => {
-			if (scale.value > 1) {
-				scale.value = withTiming(1);
-				translationX.value = withTiming(0);
-				translationY.value = withTiming(0);
-				savedTranslationX.value = 0;
-				savedTranslationY.value = 0;
-				runOnJS(setIsZoomed)(false);
-			} else {
-				scale.value = withTiming(2.2);
-				runOnJS(setIsZoomed)(true);
-			}
-		});
+	// Derived on UI thread — no runOnJS needed for scroll gating
+	const isZoomed = useDerivedValue(() => scale.value > 1);
 
-	const pinchGesture = Gesture.Pinch()
-		.onUpdate((event) => {
-			scale.value = Math.max(1, Math.min(event.scale, 4));
-		})
-		.onEnd(() => {
-			if (scale.value < 1.1) {
-				scale.value = withTiming(1);
-				translationX.value = withTiming(0);
-				translationY.value = withTiming(0);
-				savedTranslationX.value = 0;
-				savedTranslationY.value = 0;
-				runOnJS(setIsZoomed)(false);
-			} else {
-				runOnJS(setIsZoomed)(true);
-			}
-		});
+	const clampTranslation = (value: number, s: number): number => {
+		'worklet';
+		const maxPan = MAX_PAN_FACTOR * (s - 1);
+		return Math.max(-maxPan, Math.min(maxPan, value));
+	};
 
-	const panGesture = Gesture.Pan()
-		.onUpdate((event) => {
-			if (scale.value > 1) {
-				translationX.value = savedTranslationX.value + event.translationX;
-				translationY.value = savedTranslationY.value + event.translationY;
-			}
-		})
-		.onEnd(() => {
-			if (scale.value <= 1) {
-				translationX.value = withTiming(0);
-				translationY.value = withTiming(0);
-				savedTranslationX.value = 0;
-				savedTranslationY.value = 0;
-			} else {
-				savedTranslationX.value = translationX.value;
-				savedTranslationY.value = translationY.value;
-			}
-		});
+	const resetTransform = () => {
+		'worklet';
+		scale.value = withTiming(1, { duration: 250 });
+		translationX.value = withTiming(0, { duration: 250 });
+		translationY.value = withTiming(0, { duration: 250 });
+		savedScale.value = 1;
+		savedTranslationX.value = 0;
+		savedTranslationY.value = 0;
+	};
 
-	const animatedStyle = useAnimatedStyle(() => {
-		return {
-			transform: [
-				{ scale: scale.value },
-				{ translateX: translationX.value },
-				{ translateY: translationY.value },
-			],
-		};
-	});
+	const doubleTapGesture = useMemo(() =>
+		Gesture.Tap()
+			.numberOfTaps(2)
+			.maxDuration(250)
+			.onStart(() => {
+				'worklet';
+				if (scale.value > 1) {
+					resetTransform();
+				} else {
+					scale.value = withTiming(2.2, { duration: 250 });
+					savedScale.value = 2.2;
+				}
+			}),
+	[]);
 
-	const gesture = Gesture.Simultaneous(
-		pinchGesture,
-		Gesture.Simultaneous(panGesture, doubleTapGesture)
-	);
+	const pinchGesture = useMemo(() =>
+		Gesture.Pinch()
+			.onUpdate((event) => {
+				'worklet';
+				scale.value = Math.max(1, Math.min(savedScale.value * event.scale, 4));
+			})
+			.onEnd(() => {
+				'worklet';
+				if (scale.value < 1.1) {
+					resetTransform();
+				} else {
+					savedScale.value = scale.value;
+				}
+			}),
+	[]);
+
+	const panGesture = useMemo(() =>
+		Gesture.Pan()
+			.minPointers(1)
+			.maxPointers(2)
+			.onUpdate((event) => {
+				'worklet';
+				if (scale.value > 1) {
+					translationX.value = clampTranslation(
+						savedTranslationX.value + event.translationX,
+						scale.value,
+					);
+					translationY.value = clampTranslation(
+						savedTranslationY.value + event.translationY,
+						scale.value,
+					);
+				}
+			})
+			.onEnd(() => {
+				'worklet';
+				if (scale.value <= 1) {
+					translationX.value = withTiming(0, { duration: 200 });
+					translationY.value = withTiming(0, { duration: 200 });
+					savedTranslationX.value = 0;
+					savedTranslationY.value = 0;
+				} else {
+					savedTranslationX.value = translationX.value;
+					savedTranslationY.value = translationY.value;
+				}
+			}),
+	[]);
+
+	const animatedStyle = useAnimatedStyle(() => ({
+		transform: [
+			{ scale: scale.value },
+			{ translateX: translationX.value },
+			{ translateY: translationY.value },
+		],
+	}));
+
+	const gesture = useMemo(() =>
+		Gesture.Simultaneous(
+			pinchGesture,
+			Gesture.Simultaneous(panGesture, doubleTapGesture),
+		),
+	[pinchGesture, panGesture, doubleTapGesture]);
+
+	const scrollAnimatedProps = useAnimatedProps(() => ({
+		scrollEnabled: !isZoomed.value,
+	}));
 
 	useEffect(() => {
 		let isActive = true;
@@ -268,8 +303,8 @@ export default function CategoryDetailScreen() {
 				</View>
 
 				<View style={styles.content}>
-					<ScrollView
-						scrollEnabled={!isZoomed}
+					<Animated.ScrollView
+						animatedProps={scrollAnimatedProps}
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={[
 							styles.scrollContent,
@@ -307,7 +342,7 @@ export default function CategoryDetailScreen() {
 								<Text style={styles.notFoundText}>{notFoundText}</Text>
 							</View>
 						)}
-					</ScrollView>
+					</Animated.ScrollView>
 				</View>
 
 				<View style={[styles.bottomBar, { bottom: Math.max(insets.bottom, 16) }]}>
